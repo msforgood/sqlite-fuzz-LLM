@@ -3,6 +3,19 @@ bld/
 advanced_fuzzer_standalone
 advanced_ossfuzz
 
+# Coverage build artifacts
+coverage_build/
+gcov_build/
+coverage_results/
+gcov_results/
+*_coverage
+*_gcov
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+
 # Binary test files  
 *.bin
 
