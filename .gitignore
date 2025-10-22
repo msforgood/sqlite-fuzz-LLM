@@ -1,0 +1,20 @@
+# Build artifacts
+bld/
+advanced_fuzzer_standalone
+advanced_ossfuzz
+
+# Binary test files  
+*.bin
+
+# SQLite temporary files
+*.db
+*.db-shm
+*.db-wal
+
+# Backup files
+*~
+*.bak
+
+# OS specific
+.DS_Store
+Thumbs.db

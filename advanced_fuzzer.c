@@ -61,6 +61,14 @@ void ossfuzz_set_debug_flags(unsigned x){
     mDebug = x;
 }
 
+// Initialize debug flags from environment variable
+static void init_debug_flags(void) {
+    char *env_flags = getenv("SQLITE_DEBUG_FLAGS");
+    if (env_flags) {
+        mDebug = (unsigned)atoi(env_flags);
+    }
+}
+
 // Time utility (reused from original)
 static sqlite3_int64 timeOfDay(void){
     static sqlite3_vfs *clockVfs = 0;
@@ -311,6 +319,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     AdvancedFuzzCtx ctx;
     char *zSql = NULL;
     size_t pos = 0;
+    
+    // Initialize debug flags from environment
+    init_debug_flags();
     
     memset(&ctx, 0, sizeof(ctx));
     if( size < 3 ) return 0;
