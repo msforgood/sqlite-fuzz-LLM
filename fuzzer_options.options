@@ -1,0 +1,36 @@
+[libfuzzer]
+# Enhanced fuzzing options for advanced SQLite3 fuzzer
+
+# Use our enhanced dictionary
+dict = enhanced_dict.dict
+
+# Increase timeout for complex operations
+timeout = 30
+
+# Memory limit (25MB)
+rss_limit_mb = 25
+
+# Maximum input length
+max_len = 65536
+
+# Enable more aggressive mutation
+mutate_depth = 8
+
+# Reduce number of runs for intensive testing
+runs = 100000
+
+# Enable shrinking to find minimal test cases
+shrink = 1
+
+# Print statistics
+print_final_stats = 1
+
+# Enable coverage feedback
+use_counters = 1
+
+# Detect slow units
+report_slow_units = 10
+
+# Additional libFuzzer options for better coverage
+prefer_small = 1
+use_value_profile = 1

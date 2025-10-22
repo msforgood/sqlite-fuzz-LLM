@@ -1,0 +1,197 @@
+# Enhanced SQLite3 Fuzzing Dictionary
+# Extended from original sql.dict with additional coverage-focused entries
+
+# Basic SQL Keywords (from original)
+keyword_SELECT="SELECT"
+keyword_INSERT="INSERT"
+keyword_UPDATE="UPDATE"
+keyword_DELETE="DELETE"
+keyword_CREATE="CREATE"
+keyword_DROP="DROP"
+keyword_ALTER="ALTER"
+keyword_TABLE="TABLE"
+keyword_INDEX="INDEX"
+keyword_VIEW="VIEW"
+keyword_TRIGGER="TRIGGER"
+keyword_BEGIN="BEGIN"
+keyword_COMMIT="COMMIT"
+keyword_ROLLBACK="ROLLBACK"
+
+# Transaction Control (Enhanced)
+trans_savepoint="SAVEPOINT sp1"
+trans_release="RELEASE sp1"
+trans_rollback_to="ROLLBACK TO sp1"
+trans_immediate="BEGIN IMMEDIATE"
+trans_exclusive="BEGIN EXCLUSIVE"
+trans_deferred="BEGIN DEFERRED"
+
+# JSON Functions (Enhanced Coverage)
+json_extract="json_extract('{\"a\":1}', '$.a')"
+json_array="json_array(1,2,3)"
+json_object="json_object('key','value')"
+json_patch="json_patch('{\"a\":1}','{\"b\":2}')"
+json_remove="json_remove('{\"a\":1,\"b\":2}','$.a')"
+json_replace="json_replace('{\"a\":1}','$.a',2)"
+json_set="json_set('{\"a\":1}','$.b',2)"
+json_type="json_type('{\"a\":1}','$.a')"
+json_valid="json_valid('{\"a\":1}')"
+json_quote="json_quote('text')"
+
+# Window Functions (Advanced)
+window_row_number="ROW_NUMBER() OVER (ORDER BY id)"
+window_rank="RANK() OVER (ORDER BY id)"
+window_dense_rank="DENSE_RANK() OVER (ORDER BY id)"
+window_lag="LAG(id, 1) OVER (ORDER BY id)"
+window_lead="LEAD(id, 1) OVER (ORDER BY id)"
+window_first_value="FIRST_VALUE(id) OVER (ORDER BY id)"
+window_last_value="LAST_VALUE(id) OVER (ORDER BY id)"
+window_nth_value="NTH_VALUE(id, 2) OVER (ORDER BY id)"
+
+# Common Table Expressions
+cte_simple="WITH t(x) AS (SELECT 1) SELECT * FROM t"
+cte_recursive="WITH RECURSIVE t(x) AS (SELECT 1 UNION SELECT x+1 FROM t WHERE x<10) SELECT * FROM t"
+
+# Aggregate Functions (Enhanced)
+agg_count_distinct="COUNT(DISTINCT id)"
+agg_group_concat="GROUP_CONCAT(name, ';')"
+agg_sum_case="SUM(CASE WHEN id > 0 THEN 1 ELSE 0 END)"
+agg_avg_filter="AVG(value) FILTER (WHERE value > 0)"
+
+# String Functions (Coverage)
+func_instr="instr('hello', 'l')"
+func_substr_neg="substr('hello', -3)"
+func_replace_multi="replace(replace('abc', 'a', 'x'), 'b', 'y')"
+func_trim_both="trim(' hello ')"
+func_trim_leading="ltrim(' hello')"
+func_trim_trailing="rtrim('hello ')"
+func_upper="upper('hello')"
+func_lower="lower('HELLO')"
+func_length_unicode="length('🙂')"
+
+# Math Functions
+math_abs="abs(-42.5)"
+math_round_prec="round(3.14159, 2)"
+math_max_multi="max(1, 2, 3, 4, 5)"
+math_min_multi="min(5, 4, 3, 2, 1)"
+math_random="random()"
+math_sign="sign(-42)"
+
+# Date/Time Functions (Extended)
+datetime_now="datetime('now')"
+datetime_localtime="datetime('now', 'localtime')"
+datetime_utc="datetime('now', 'utc')"
+datetime_add="datetime('now', '+1 day')"
+datetime_sub="datetime('now', '-1 hour')"
+datetime_start_of="datetime('now', 'start of day')"
+date_only="date('now')"
+time_only="time('now')"
+strftime_custom="strftime('%Y-%m-%d %H:%M:%S', 'now')"
+julianday_func="julianday('now')"
+unixepoch_func="unixepoch('now')"
+
+# Type Conversion
+cast_integer="CAST('123' AS INTEGER)"
+cast_real="CAST('3.14' AS REAL)"
+cast_text="CAST(123 AS TEXT)"
+cast_blob="CAST('hello' AS BLOB)"
+typeof_test="typeof(NULL)"
+
+# BLOB Functions
+blob_random="randomblob(16)"
+blob_zero="zeroblob(100)"
+blob_hex="hex('hello')"
+blob_unhex="unhex('48656C6C6F')"
+blob_length="length(randomblob(32))"
+
+# Advanced Expressions
+expr_case="CASE WHEN 1=1 THEN 'true' ELSE 'false' END"
+expr_coalesce="COALESCE(NULL, NULL, 'default')"
+expr_nullif="NULLIF('', '')"
+expr_iif="IIF(1=1, 'yes', 'no')"
+
+# Subqueries
+subq_exists="EXISTS(SELECT 1)"
+subq_not_exists="NOT EXISTS(SELECT 1 WHERE 0=1)"
+subq_in="1 IN (SELECT 1 UNION SELECT 2)"
+subq_scalar="(SELECT COUNT(*) FROM sqlite_master)"
+
+# Table-Valued Functions
+tvf_generate_series="generate_series(1, 10)"
+tvf_json_each="json_each('{\"a\":1,\"b\":2}')"
+tvf_json_tree="json_tree('{\"a\":[1,2,3]}')"
+
+# FTS (Full-Text Search) if enabled
+fts_match="MATCH 'sqlite'"
+fts_snippet="snippet(fts_table)"
+fts_offsets="offsets(fts_table)"
+fts_matchinfo="matchinfo(fts_table, 'x')"
+
+# R-Tree if enabled
+rtree_geometry="id IN (SELECT id FROM rtree_index WHERE minX >= 0)"
+
+# Virtual Table Pragmas
+pragma_table_info="PRAGMA table_info(sqlite_master)"
+pragma_index_info="PRAGMA index_info(idx_name)"
+pragma_foreign_key_list="PRAGMA foreign_key_list(table_name)"
+pragma_compile_options="PRAGMA compile_options"
+
+# Schema Information
+schema_sqlite_master="SELECT * FROM sqlite_master"
+schema_pragma_schema="PRAGMA schema_version"
+schema_pragma_user_version="PRAGMA user_version"
+
+# Error Injection Patterns
+error_syntax=" SELECTT 1"
+error_column=" SELECT nonexistent_column"
+error_table=" SELECT * FROM nonexistent_table"
+error_function=" SELECT nonexistent_func()"
+
+# Performance/Stress Patterns
+stress_long_string="SELECT LENGTH('" + "A" * 1000 + "')"
+stress_deep_nesting="SELECT (((((1)))))"
+stress_many_unions="SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5"
+
+# Complex JOIN patterns
+join_self="SELECT * FROM t a JOIN t b ON a.id = b.id"
+join_multiple="SELECT * FROM t1 JOIN t2 ON t1.id=t2.id JOIN t3 ON t2.id=t3.id"
+join_cross="SELECT * FROM t1 CROSS JOIN t2"
+join_natural="SELECT * FROM t1 NATURAL JOIN t2"
+
+# UNIQUE constraint testing
+unique_conflict="INSERT OR IGNORE INTO t VALUES(1)"
+unique_replace="INSERT OR REPLACE INTO t VALUES(1)"
+unique_abort="INSERT OR ABORT INTO t VALUES(1)"
+unique_fail="INSERT OR FAIL INTO t VALUES(1)"
+unique_rollback="INSERT OR ROLLBACK INTO t VALUES(1)"
+
+# Index hints
+index_hint_not_indexed="SELECT * FROM t NOT INDEXED"
+index_hint_indexed_by="SELECT * FROM t INDEXED BY idx_name"
+
+# Trigger testing
+trigger_new="NEW.column_name"
+trigger_old="OLD.column_name"
+trigger_when="WHEN NEW.id > OLD.id"
+
+# Common snippets for combination
+snippet_limit=" LIMIT 10"
+snippet_offset=" OFFSET 5"
+snippet_order_asc=" ORDER BY id ASC"
+snippet_order_desc=" ORDER BY id DESC"
+snippet_group_by=" GROUP BY category"
+snippet_having=" HAVING COUNT(*) > 1"
+snippet_distinct=" DISTINCT"
+snippet_all=" ALL"
+
+# Unicode and special characters
+unicode_emoji="'🙂😀🎉'"
+unicode_chinese="'你好世界'"
+unicode_arabic="'مرحبا بالعالم'"
+special_chars="'!@#$%^&*()[]{}'"
+escape_chars="'It''s a test'"
+null_char="'hello\0world'"
+
+# Binary patterns
+binary_pattern="X'48656C6C6F'"
+binary_zero="X'00'"
+binary_max="X'FF'"
