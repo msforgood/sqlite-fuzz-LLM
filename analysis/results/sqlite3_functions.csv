@@ -1,7 +1,7 @@
 function_name,file,line_number,return_type,category,subcategory,fuzzing_priority,complexity,is_public_api,is_static,description,full_signature, fuzzed
 allocateBtreePage,btree.c,3991,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int allocateBtreePage(BtShared *, MemPage **, Pgno *, Pgno, u8);", True
 allocateBtreePage,btree.c,6475,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int allocateBtreePage(, True
-autoVacuumCommit,btree.c,4174,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int autoVacuumCommit(Btree *p){, False
+autoVacuumCommit,btree.c,4174,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int autoVacuumCommit(Btree *p){, True
 btreeBeginTrans,btree.c,3783,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeBeginTrans(p,wrflag,pSchemaVersion);", False
 btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,return btreeCellSizeCheck(pPage);, False
 btreeClearHasContent,btree.c,682,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeClearHasContent(BtShared *pBt){, False

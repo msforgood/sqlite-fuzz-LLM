@@ -97,15 +97,31 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   FuzzCtx cx;
   
   memset(&cx, 0, sizeof(cx));
-  if( size < sizeof(BtreeAllocPacket) ) return 0;
   
-  /* Parse fuzzing packet */
-  const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
-  cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
-  cx.targetPgno = pPacket->nearbyPgno;
-  cx.allocMode = pPacket->allocType % 3; /* 0-2 valid modes */
-  cx.corruptionSeed = pPacket->corruptionMask;
-  cx.memoryLimit = pPacket->memoryPressure;
+  /* Check minimum size for either packet type */
+  if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) ) return 0;
+  
+  /* Determine fuzzing mode based on first byte */
+  uint8_t fuzzSelector = data[0];
+  cx.fuzzMode = fuzzSelector % 7; /* 0-6 valid modes, added autoVacuum */
+  
+  /* Parse appropriate packet based on mode */
+  if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
+    const AutoVacuumPacket *pAvPacket = (const AutoVacuumPacket*)data;
+    cx.targetPgno = pAvPacket->dbPages;
+    cx.allocMode = pAvPacket->vacuumMode % 3;
+    cx.corruptionSeed = pAvPacket->corruptionSeed;
+    cx.memoryLimit = pAvPacket->customVacFunc;
+  } else if( size >= sizeof(BtreeAllocPacket) ) {
+    const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
+    cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
+    cx.targetPgno = pPacket->nearbyPgno;
+    cx.allocMode = pPacket->allocType % 3; /* 0-2 valid modes */
+    cx.corruptionSeed = pPacket->corruptionMask;
+    cx.memoryLimit = pPacket->memoryPressure;
+  } else {
+    return 0;
+  }
   
   /* Initialize SQLite */
   if( sqlite3_initialize() ) return 0;
@@ -135,16 +151,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   /* Block debug pragmas */
   sqlite3_set_authorizer(cx.db, block_debug_pragmas, 0);
   
-  /* Set execution limit */
-  cx.execCnt = (pPacket->payload[0] % 50) + 1;
-  
-  /* Execute enhanced B-Tree allocation fuzzing */
-  fuzz_btree_allocation(&cx, pPacket);
+  /* Set execution limit based on mode */
+  if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
+    const AutoVacuumPacket *pAvPacket = (const AutoVacuumPacket*)data;
+    cx.execCnt = (pAvPacket->testData[0] % 50) + 1;
+    
+    /* Execute enhanced auto-vacuum commit fuzzing */
+    fuzz_autovacuum_commit(&cx, pAvPacket);
+  } else if( size >= sizeof(BtreeAllocPacket) ) {
+    const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
+    cx.execCnt = (pPacket->payload[0] % 50) + 1;
+    
+    /* Execute enhanced B-Tree allocation fuzzing */
+    fuzz_btree_allocation(&cx, pPacket);
+  }
   
   /* If remaining data, treat as SQL */
-  if( size > sizeof(BtreeAllocPacket) ) {
-    size_t sqlLen = size - sizeof(BtreeAllocPacket);
-    const uint8_t *sqlData = data + sizeof(BtreeAllocPacket);
+  size_t packetSize = (cx.fuzzMode == FUZZ_MODE_AUTOVACUUM) ? sizeof(AutoVacuumPacket) : sizeof(BtreeAllocPacket);
+  if( size > packetSize ) {
+    size_t sqlLen = size - packetSize;
+    const uint8_t *sqlData = data + packetSize;
     
     char *zSql = sqlite3_mprintf("%.*s", (int)sqlLen, sqlData);
     if( zSql ) {
