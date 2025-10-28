@@ -66,29 +66,13 @@ typedef struct AutoVacuumPacket {
   uint8_t testData[24];      /* Additional test parameters */
 } AutoVacuumPacket;
 
-/* Function declarations */
-static int progress_handler(void *pClientData);
-static int exec_handler(void *pClientData, int argc, char **argv, char **namev);
-static int block_debug_pragmas(void *Notused, int eCode, const char *zArg1, 
-                               const char *zArg2, const char *zArg3, const char *zArg4);
-static sqlite3_int64 timeOfDay(void);
+/* Core function declarations */
+int progress_handler(void *pClientData);
+int exec_handler(void *pClientData, int argc, char **argv, char **namev);
+int block_debug_pragmas(void *Notused, int eCode, const char *zArg1, 
+                        const char *zArg2, const char *zArg3, const char *zArg4);
+sqlite3_int64 timeOfDay(void);
 
-/* Enhanced fuzzing functions */
-static int fuzz_btree_allocation(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
-static int setup_btree_environment(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
-static int test_freelist_scenarios(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
-static int test_corruption_detection(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
-static int test_memory_stress(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
-static void generate_btree_sql(char *zSql, size_t sqlSize, const BtreeAllocPacket *pPacket);
-
-/* Auto-vacuum fuzzing functions */
-static int fuzz_autovacuum_commit(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
-static int setup_autovacuum_environment(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
-static int test_autovacuum_scenarios(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
-static int test_incremental_vacuum(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
-static int test_autovac_corruption(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
-static int test_custom_autovac_callback(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
-static void generate_autovacuum_sql(char *zSql, size_t sqlSize, const AutoVacuumPacket *pPacket);
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

@@ -44,21 +44,21 @@ build/dependencies/
 ```
 
 ### 함수 선정 프로세스
-1. **우선순위 기반 선정**: `./analysis/results/sqlite3_functions.csv` 참조
+1. **우선순위 기반 카테고리 선정**: `./analysis/results/sqlite3_functions.csv` 참조 fuzzed 열이 False인 함수 중에서
    - Critical 우선순위 함수: 960개 (22.5%)
    - High 우선순위 함수: 486개 (11.4%)
    - 카테고리별 중요도: B-Tree > VDBE > Parser > Storage
 
-2. **함수 분석 단계**:
+2. **함수 선정**
+   - 실행 한 번에 하나의 카테고리에 포함된 모든 함수 선정
+
+3. **함수 분석 단계**:
    ```bash
-   # CSV에서 미퍼징 Critical 함수 확인
-   grep "Critical" analysis/results/sqlite3_functions.csv | head -20
-   
    # 소스코드에서 함수 정의 위치 확인
    grep -n "function_name" build/dependencies/sqlite3-source/src/*.c
    ```
 
-3. **Function Code (FC) 매핑**:
+4. **Function Code (FC) 매핑**:
    - SQLite3 내부 함수: 파일명 + 함수명 기반 유니크 ID
    - Public API: sqlite3_ 접두사 기반 표준 매핑
    - 매핑 근거를 `./fuzzers/ours_w_spec/spec/{함수명}_spec.json`에 기록
@@ -197,21 +197,38 @@ grep -A 10 "struct.*{" build/dependencies/sqlite3-source/src/*.h
 
 ## 5) 하니스 구현
 
-### `./fuzzers/ours_w_spec/fuzz.c`
+### 하니스 파일 구조 (Modular Organization)
 
-원래 구현되어 있는 이전 함수에 대한 하니스에 새로운 함수에 대한 하니스를 누적 작성하는 것이다.
-이전에 다른 함수에 대해 작성된 내용을 대체하면 안된다.
+#### 메인 파일
+* `./fuzzers/ours_w_spec/fuzz.c` - 메인 fuzzer 엔트리포인트와 공통 기능
+* `./fuzzers/ours_w_spec/fuzz.h` - 공통 타입 정의 및 인터페이스
 
-하니스 규칙
-* `LLVMFuzzerTestOneInput(uint8_t* data, size_t size)` 수정 구현.
-* 입력 바이트를 `spec.json`의 `struct_spec`에 맞춰 패킷을 구성.
-* `validation_spec`을 반영해 조기 return 조건(경계 부족, 정렬 불일치 등) 추가.
-* FC를 포함한 호출 코드로 실제 타겟 함수를 단일 호출 또는 소량 시나리오로 exercise.
-* 추가 지시: 단순히 spec.json 구조체 필드를 매핑하는 것에 그치지 말고, context 기반 코드 커버리지의 depth를 최대화할 수 있도록 함수 문맥을 고려해 분기를 여는 입력을 직접 생성·주입하라. 다양한 입력 조건·시나리오(권한 비트, 정수 범위, 체크섬 일치/불일치, 리소스 존재/부재, 경계값, 정렬 위반, 문자열 경계, 시퀀스·상태 전이 등)를 구현하고 입력에서 결정되게 하라.
+#### 함수별 하니스 파일
+각 타겟 함수별로 별도 파일로 분리하여 관리:
+* `./fuzzers/ours_w_spec/{function_name}_harness.c` - 함수별 하니스 구현
+* `./fuzzers/ours_w_spec/{function_name}_harness.h` - 함수별 헤더 파일
 
-선언 위치
-* 생성기 선언은 /fuzzers/ours_w_spec/fuzz.h에만 작성.
-* fuzz.c에는 하니스 관련 함수 선언 금지.
+예시:
+* `btree_harness.c/h` - allocateBtreePage 관련 하니스
+* `autovacuum_harness.c/h` - autoVacuumCommit 관련 하니스
+
+#### 하니스 구현 규칙
+* `LLVMFuzzerTestOneInput(uint8_t* data, size_t size)` 는 fuzz.c에서만 구현
+* 각 함수별 하니스는 독립적인 파일에서 구현
+* 공통 기능(progress_handler, exec_handler 등)은 fuzz.c에 유지
+* 각 하니스 파일은 fuzz.h와 자신의 헤더 파일을 include
+
+#### 패킷 구조 및 검증
+* 입력 바이트를 `spec.json`의 `struct_spec`에 맞춰 패킷을 구성
+* `validation_spec`을 반영해 조기 return 조건(경계 부족, 정렬 불일치 등) 추가
+* FC를 포함한 호출 코드로 실제 타겟 함수를 단일 호출 또는 소량 시나리오로 exercise
+* 단순히 spec.json 구조체 필드를 매핑하는 것에 그치지 말고, context 기반 코드 커버리지의 depth를 최대화할 수 있도록 함수 문맥을 고려해 분기를 여는 입력을 직접 생성·주입
+* 다양한 입력 조건·시나리오(권한 비트, 정수 범위, 체크섬 일치/불일치, 리소스 존재/부재, 경계값, 정렬 위반, 문자열 경계, 시퀀스·상태 전이 등)를 구현하고 입력에서 결정되게 함
+
+#### 함수 선언 위치
+* 공통 함수 선언은 `fuzz.h`에 작성
+* 함수별 하니스 선언은 각각의 `{function_name}_harness.h`에 작성
+* fuzz.c에는 하니스 관련 함수 선언 금지
 
 ## 6) SQLite3 퍼저 빌드 및 테스트
 
