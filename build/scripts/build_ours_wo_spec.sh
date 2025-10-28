@@ -82,7 +82,7 @@ fi
 $CC $CFLAGS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o sqlite3.o
 
 # Compile our advanced fuzzer
-$CC $CFLAGS -I"$DEPS_DIR" -c "$FUZZER_DIR/advanced_fuzzer.c" -o advanced_fuzzer.o
+$CC $CFLAGS -I"$DEPS_DIR" -c "$FUZZER_DIR/fuzz.c" -o advanced_fuzzer.o
 
 # Link everything together
 if [ -n "${LIB_FUZZING_ENGINE:-}" ]; then

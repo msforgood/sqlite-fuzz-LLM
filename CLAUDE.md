@@ -11,6 +11,7 @@
 - 절대 파일을 삭제하지 않는다 (DO NOT DELETE any file)
 - 기존 baseline 퍼저는 수정 금지 (`fuzzers/baseline/` 보존)
 - 분석 결과 파일 덮어쓰기 금지 (`analysis/results/` 보존)
+- 원래 구현되어 있는 이전 하니스에 새로운 함수에 대한 하니스를 누적 작성
 
 ## SQLite3 특화 제약사항
 - SQLite3 amalgamation (`sqlite3.c`) 수정 금지
@@ -198,6 +199,9 @@ grep -A 10 "struct.*{" build/dependencies/sqlite3-source/src/*.h
 
 ### `./fuzzers/ours_w_spec/fuzz.c`
 
+원래 구현되어 있는 이전 함수에 대한 하니스에 새로운 함수에 대한 하니스를 누적 작성하는 것이다.
+이전에 다른 함수에 대해 작성된 내용을 대체하면 안된다.
+
 하니스 규칙
 * `LLVMFuzzerTestOneInput(uint8_t* data, size_t size)` 수정 구현.
 * 입력 바이트를 `spec.json`의 `struct_spec`에 맞춰 패킷을 구성.
@@ -284,6 +288,9 @@ git commit -m "feat: Add fuzzing harness for ${FUNC_NAME}" \
 ```bash
 git push origin $BRANCH_NAME
 ```
+
+## 8) 함수 리스트 업데이트
+퍼징 하니스 개발을 진행한 함수에 대해 `./analysis/results/sqlite3_functions.csv`에서 fuzzed 열의 False 값을 True로 변경하기
 
 ---
 

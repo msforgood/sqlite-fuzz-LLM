@@ -41,7 +41,7 @@ $CC $CFLAGS -I.. -c ../ossfuzz.c -o ossfuzz_gcov.o
 
 # Build advanced fuzzer with coverage
 echo "Building advanced fuzzer with gcov..."
-$CC $CFLAGS -I.. -c ../advanced_fuzzer.c -o advanced_fuzzer_gcov.o
+$CC $CFLAGS -I.. -c ../fuzz.c -o advanced_fuzzer_gcov.o
 
 # Use the same test main from coverage build
 cp ../coverage_build/test_main_original.c .
