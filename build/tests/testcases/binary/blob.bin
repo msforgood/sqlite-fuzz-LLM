@@ -1,0 +1,1 @@
+0SELECT randomblob(100);

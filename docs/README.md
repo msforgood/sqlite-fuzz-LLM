@@ -23,7 +23,7 @@
 ```
 custom-sqlite-fuzzer/
 ├── 🚀 고도화된 퍼저
-│   ├── advanced_fuzzer.c          # 7가지 모드를 지원하는 고도화 퍼저
+│   ├── fuzz.c          # 7가지 모드를 지원하는 고도화 퍼저
 │   ├── build_advanced.sh          # 향상된 빌드 스크립트
 │   ├── enhanced_dict.dict         # 190+ 확장 딕셔너리
 │   └── fuzzer_options.options     # 최적화된 퍼저 설정
@@ -283,7 +283,7 @@ done
 ## 🤝 기여 및 확장
 
 ### 새로운 퍼징 모드 추가
-1. `advanced_fuzzer.c`의 `FuzzMode` enum에 새 모드 추가
+1. `fuzz.c`의 `FuzzMode` enum에 새 모드 추가
 2. `generate_*_sql()` 함수 구현
 3. 메인 switch문에 케이스 추가
 4. 해당 모드의 테스트 케이스 생성

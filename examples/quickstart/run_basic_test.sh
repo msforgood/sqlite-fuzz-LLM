@@ -5,10 +5,10 @@ echo "=== Advanced SQLite3 Fuzzer - Quick Test ==="
 echo ""
 
 # Build if needed
-if [ ! -f "../../advanced_fuzzer_standalone" ]; then
-    echo "Building advanced fuzzer..."
+if [ ! -f "../../ours_wo_spec_standalone" ]; then
+    echo "Building ours_wo_spec fuzzer..."
     cd ../..
-    make advanced
+    make ours_wo_spec
     cd examples/quickstart
 fi
 
@@ -18,25 +18,25 @@ echo ""
 # Test 1: Basic SQL
 echo "1. Testing basic SQL execution:"
 echo "   Input: SELECT 1;"
-../../advanced_fuzzer_standalone ../../tests/testcases/sql/basic.sql
+../../ours_wo_spec_standalone ../../tests/testcases/sql/basic.sql
 echo ""
 
 # Test 2: Schema mode
 echo "2. Testing schema manipulation mode (mode 2):"
 echo "   Input: Binary data with schema operations"
-../../advanced_fuzzer_standalone ../../tests/testcases/binary/schema.bin
+../../ours_wo_spec_standalone ../../tests/testcases/binary/schema.bin
 echo ""
 
 # Test 3: Functions mode  
 echo "3. Testing function-focused mode (mode 3):"
 echo "   Input: Binary data with function calls"
-../../advanced_fuzzer_standalone ../../tests/testcases/binary/functions.bin
+../../ours_wo_spec_standalone ../../tests/testcases/binary/functions.bin
 echo ""
 
 # Test 4: Debug mode
 echo "4. Testing with debug output enabled:"
 echo "   Input: Same as test 1, but with debug flags"
-SQLITE_DEBUG_FLAGS=15 ../../advanced_fuzzer_standalone ../../tests/testcases/sql/basic.sql
+SQLITE_DEBUG_FLAGS=15 ../../ours_wo_spec_standalone ../../tests/testcases/sql/basic.sql
 echo ""
 
 echo "=== All Tests Completed Successfully ==="

@@ -41,7 +41,7 @@ $CC $CFLAGS -I.. -c ../ossfuzz.c -o ossfuzz_coverage.o
 
 # Build advanced fuzzer with coverage
 echo "Building advanced fuzzer with coverage..."
-$CC $CFLAGS -I.. -c ../advanced_fuzzer.c -o advanced_fuzzer_coverage.o
+$CC $CFLAGS -I.. -c ../fuzz.c -o advanced_fuzzer_coverage.o
 
 # Create test main for both fuzzers
 cat > test_main_original.c << 'EOF'

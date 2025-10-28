@@ -14,12 +14,12 @@ make all
 ### 2. Run Basic Test
 
 ```bash
-# Test the advanced fuzzer
-./advanced_fuzzer_standalone tests/testcases/sql/basic.sql
+# Test the ours_wo_spec fuzzer
+./ours_wo_spec_standalone tests/testcases/sql/basic.sql
 
 # Test with different modes
-./advanced_fuzzer_standalone tests/testcases/binary/schema.bin
-./advanced_fuzzer_standalone tests/testcases/binary/functions.bin
+./ours_wo_spec_standalone tests/testcases/binary/schema.bin
+./ours_wo_spec_standalone tests/testcases/binary/functions.bin
 ```
 
 ### 3. Run Performance Comparison
@@ -39,7 +39,7 @@ cat analysis/results/reports/performance_summary.md
 
 ## What You Should See
 
-- Advanced fuzzer runs successfully on test cases
+- ours_wo_spec fuzzer runs successfully on test cases
 - Coverage analysis shows improvement over baseline
 - Multiple fuzzing modes demonstrate different test scenarios
 
