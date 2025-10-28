@@ -4,6 +4,12 @@
 
 echo "Building Advanced SQLite3 Fuzzer..."
 
+# Set paths first (before changing directory)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DEPS_DIR="$ROOT_DIR/build/dependencies"
+FUZZER_DIR="$ROOT_DIR/fuzzers/ours_w_spec"
+
 # Create build directory
 mkdir -p bld
 cd bld
@@ -28,12 +34,6 @@ export CFLAGS="${CFLAGS:-} -DSQLITE_MAX_LENGTH=128000000 \
                -DSQLITE_ENABLE_STMTVTAB=1 \
                -DSQLITE_THREADSAFE=0 \
                -DSQLITE_OMIT_RANDOMNESS=1"
-
-# Set paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-DEPS_DIR="$ROOT_DIR/build/dependencies"
-FUZZER_DIR="$ROOT_DIR/fuzzers/advanced"
 
 # Check if we have SQLite3 source
 if [ ! -f "$DEPS_DIR/sqlite3.c" ]; then
@@ -61,6 +61,7 @@ if [ ! -f "$DEPS_DIR/sqlite3.c" ]; then
     
     if [ -n "$SQLITE_SRC_PATH" ] && [ "$SQLITE_SRC_PATH" != "$DEPS_DIR" ]; then
         echo "Copying SQLite3 source from $SQLITE_SRC_PATH"
+        mkdir -p "$DEPS_DIR"
         cp "$SQLITE_SRC_PATH/sqlite3.c" "$DEPS_DIR/"
         cp "$SQLITE_SRC_PATH/sqlite3.h" "$DEPS_DIR/"
     fi
@@ -81,14 +82,14 @@ fi
 # Compile SQLite3 first
 $CC $CFLAGS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o sqlite3.o
 
-# Compile our advanced fuzzer
-$CC $CFLAGS -I"$DEPS_DIR" -c "$FUZZER_DIR/advanced_fuzzer.c" -o advanced_fuzzer.o
+# Compile our ours_w_spec fuzzer
+$CC $CFLAGS -I"$DEPS_DIR" -c "$FUZZER_DIR/advanced_fuzz.c" -o ours_w_spec_fuzzer.o
 
 # Link everything together
 if [ -n "${LIB_FUZZING_ENGINE:-}" ]; then
     # OSS-Fuzz environment
     $CXX $CXXFLAGS \
-        advanced_fuzzer.o sqlite3.o -o "$ROOT_DIR/advanced_ossfuzz" \
+        ours_w_spec_fuzzer.o sqlite3.o -o "$ROOT_DIR/ours_w_spec_ossfuzz" \
         $LIB_FUZZING_ENGINE
 else
     # Standalone testing
@@ -154,11 +155,11 @@ EOF
     $CC $CFLAGS -I"$DEPS_DIR" -c test_main.c -o test_main.o
     
     $CC $CFLAGS \
-        advanced_fuzzer.o sqlite3.o test_main.o \
-        -o "$ROOT_DIR/advanced_fuzzer_standalone" \
+        ours_w_spec_fuzzer.o sqlite3.o test_main.o \
+        -o "$ROOT_DIR/ours_w_spec_standalone" \
         -lpthread -ldl -lm
         
-    echo "Standalone fuzzer built: $ROOT_DIR/advanced_fuzzer_standalone"
+    echo "Standalone fuzzer built: $ROOT_DIR/ours_w_spec_standalone"
 fi
 
 echo "Build completed successfully!"
@@ -187,8 +188,8 @@ printf "\x05\x40BEGIN; INSERT INTO t VALUES(1); COMMIT;" > tests/testcases/binar
 echo "Test cases created in tests/testcases/ directory"
 echo ""
 echo "To run standalone tests:"
-echo "  ./advanced_fuzzer_standalone tests/testcases/sql/basic.sql"
-echo "  ./advanced_fuzzer_standalone tests/testcases/binary/schema.bin"
+echo "  ./ours_w_spec_standalone tests/testcases/sql/basic.sql"
+echo "  ./ours_w_spec_standalone tests/testcases/binary/schema.bin"
 echo ""
 echo "To enable debug output, set environment variables:"
 echo "  export SQLITE_DEBUG_FLAGS=15  # Enable all debug output"
