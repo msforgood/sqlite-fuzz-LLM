@@ -19,6 +19,7 @@
 #define FUZZ_MODE_CORRUPTION     0x03  /* Test corruption detection */
 #define FUZZ_MODE_MEMORY_STRESS  0x04  /* Test memory pressure */
 #define FUZZ_MODE_CONCURRENT     0x05  /* Test concurrent access */
+#define FUZZ_MODE_AUTOVACUUM     0x06  /* Target autoVacuumCommit specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -53,6 +54,18 @@ typedef struct BtreeAllocPacket {
   uint8_t payload[32];       /* Additional test data */
 } BtreeAllocPacket;
 
+/* Input packet structure for autoVacuumCommit fuzzing */
+typedef struct AutoVacuumPacket {
+  uint8_t vacuumMode;        /* Auto-vacuum mode (0=NONE, 1=FULL, 2=INCREMENTAL) */
+  uint8_t pageSize;          /* Page size selector (512, 1024, 4096, etc.) */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t dbPages;          /* Initial database size in pages */
+  uint32_t freePages;        /* Number of pages to free before vacuum */
+  uint32_t corruptionSeed;   /* Seed for corruption injection */
+  uint32_t customVacFunc;    /* Custom vacuum function behavior */
+  uint8_t testData[24];      /* Additional test parameters */
+} AutoVacuumPacket;
+
 /* Function declarations */
 static int progress_handler(void *pClientData);
 static int exec_handler(void *pClientData, int argc, char **argv, char **namev);
@@ -67,6 +80,15 @@ static int test_freelist_scenarios(FuzzCtx *pCtx, const BtreeAllocPacket *pPacke
 static int test_corruption_detection(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
 static int test_memory_stress(FuzzCtx *pCtx, const BtreeAllocPacket *pPacket);
 static void generate_btree_sql(char *zSql, size_t sqlSize, const BtreeAllocPacket *pPacket);
+
+/* Auto-vacuum fuzzing functions */
+static int fuzz_autovacuum_commit(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
+static int setup_autovacuum_environment(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
+static int test_autovacuum_scenarios(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
+static int test_incremental_vacuum(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
+static int test_autovac_corruption(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
+static int test_custom_autovac_callback(FuzzCtx *pCtx, const AutoVacuumPacket *pPacket);
+static void generate_autovacuum_sql(char *zSql, size_t sqlSize, const AutoVacuumPacket *pPacket);
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

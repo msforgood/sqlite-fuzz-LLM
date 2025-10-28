@@ -1,104 +1,103 @@
 {
-  "target": { 
+  "target": {
     "function": "autoVacuumCommit",
     "fc": "btree_002",
     "category": "B-Tree",
-    "subcategory": "Index Management",
     "file": "btree.c",
-    "line": 4174,
-    "static": true
+    "line": 4174
   },
   "struct_spec": {
     "btree": {
-      "p": "Btree*",
-      "description": "B-Tree handle with auto-vacuum enabled"
-    },
-    "btree_shared": {
+      "db": "sqlite3*",
       "pBt": "BtShared*",
-      "description": "Shared B-Tree structure"
+      "inTrans": "u8",
+      "sharable": "u8",
+      "locked": "u8",
+      "hasIncrblobCur": "u8",
+      "wantToLock": "int",
+      "nBackup": "int",
+      "iBDataVersion": "u32"
     },
-    "pager": {
+    "btshared": {
       "pPager": "Pager*",
-      "description": "Page cache manager"
-    },
-    "auto_vacuum_state": {
+      "db": "sqlite3*",
+      "pCursor": "BtCursor*",
+      "pPage1": "MemPage*",
+      "openFlags": "u8",
       "autoVacuum": "u8",
       "incrVacuum": "u8",
-      "description": "Auto-vacuum configuration flags"
+      "bDoTruncate": "u8",
+      "inTransaction": "u8",
+      "max1bytePayload": "u8",
+      "nReserveWanted": "u8",
+      "btsFlags": "u16",
+      "maxLocal": "u16",
+      "minLocal": "u16",
+      "maxLeaf": "u16",
+      "minLeaf": "u16",
+      "pageSize": "u32",
+      "usableSize": "u32"
+    },
+    "sqlite3_db": {
+      "nDb": "int",
+      "aDb": "Db*",
+      "xAutovacPages": "function_ptr",
+      "pAutovacPagesArg": "void*"
+    },
+    "mempage": {
+      "aData": "u8*",
+      "pDbPage": "DbPage*",
+      "pgno": "Pgno"
     }
   },
   "validation_spec": {
     "memory_align": 8,
-    "btree_state": ["mutex_held", "autoVacuum_enabled", "transaction_active"],
-    "page_constraints": {
-      "min_pages": 2,
-      "max_pages": 4294967295,
-      "pointer_map_validation": "PTRMAP_ISPAGE check",
-      "pending_byte_check": "PENDING_BYTE_PAGE validation"
-    },
-    "auto_vacuum_modes": {
-      "SQLITE_AUTOVACUUM_NONE": 0,
-      "SQLITE_AUTOVACUUM_FULL": 1,
-      "SQLITE_AUTOVACUUM_INCREMENTAL": 2
-    },
-    "corruption_checks": [
-      "Final page cannot be pointer-map page",
-      "Final page cannot be pending-byte page",
-      "Page count consistency",
-      "Freelist integrity"
-    ]
+    "page_size": [512, 65536],
+    "pgno_range": {"min": 1, "max": 4294967295},
+    "transaction_state": ["TRANS_NONE", "TRANS_READ", "TRANS_WRITE"],
+    "autovacuum_required": true,
+    "btree_state": ["BT_OPENED", "BT_SHARED"],
+    "mutex_required": true
   },
   "fc_mapping": {
     "source": "btree.c:4174",
-    "rationale": "autoVacuumCommit - Critical auto-vacuum commit function",
-    "api_level": "internal",
-    "complexity": "high",
-    "call_frequency": "medium"
+    "rationale": "autoVacuumCommit - Critical auto-vacuum commit function for B-Tree space management",
+    "api_level": "internal"
   },
   "constraints": {
-    "max_input_size": 64,
-    "min_input_size": 16,
+    "max_input_size": 4096,
+    "min_input_size": 64,
     "endianness": "LE",
     "sqlite_version": "3.51.0",
-    "requires_initialization": true,
-    "requires_btree_setup": true,
-    "requires_auto_vacuum": true
+    "requires_initialization": true
   },
   "notes": {
     "preconditions": [
       "sqlite3_initialize() called",
-      "Valid Btree object with auto-vacuum enabled",
+      "Valid Btree object created with autoVacuum enabled",
       "BtShared mutex held",
-      "Active transaction with changes",
-      "Auto-vacuum mode enabled (not NONE)"
+      "Database in valid state"
     ],
     "side_effects": [
-      "Database pages reorganized and truncated",
-      "Freelist pages removed from end of file",
-      "Pointer-map pages updated",
-      "Database file size reduced",
-      "Overflow cache invalidated"
+      "Database pages may be freed and moved",
+      "Page counts updated in database header",
+      "Freelist structure modified",
+      "Database file may be truncated"
     ],
     "error_conditions": [
       "SQLITE_CORRUPT_BKPT: Database corruption detected",
-      "SQLITE_IOERR: I/O error during page operations",
-      "SQLITE_NOMEM: Out of memory during operations",
-      "SQLITE_BUSY: Database locked"
+      "SQLITE_OK: Normal completion",
+      "SQLITE_DONE: Vacuum operation completed",
+      "Other error codes from pager operations"
     ],
-    "fuzzing_strategy": [
-      "Test auto-vacuum with various database sizes",
-      "Test corruption detection in pointer-map pages",
-      "Test freelist edge cases during vacuum",
-      "Test incremental vs full auto-vacuum modes",
-      "Test concurrent access during vacuum"
-    ],
-    "coverage_targets": [
-      "Auto-vacuum page calculation logic",
-      "Pointer-map page validation",
-      "Freelist management during vacuum",
-      "Database truncation operations",
-      "Corruption detection paths",
-      "Error handling in vacuum operations"
+    "coverage_scenarios": [
+      "autoVacuum enabled/disabled scenarios",
+      "incrVacuum mode variations", 
+      "Different page count conditions",
+      "Freelist with various states",
+      "Custom xAutovacPages callback handling",
+      "Pointer-map page boundary conditions",
+      "Database size edge cases"
     ]
   }
 }

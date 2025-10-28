@@ -1,1 +1,0 @@
-CREATE TABLE test(id INTEGER PRIMARY KEY, name TEXT); INSERT INTO test VALUES(1, 'hello'); SELECT * FROM test;

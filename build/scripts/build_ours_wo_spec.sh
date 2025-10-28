@@ -1,194 +1,131 @@
 #!/bin/bash -eu
-# Advanced SQLite3 Fuzzer Build Script
-# Based on original build.sh with enhancements
+# Build + Run + Coverage for ours_wo_spec (libFuzzer)
+# DURATION_SEC, TIMEOUT_SEC, CC, CXX, LLVM_PROFDATA, LLVM_COV, SQLITE_SRC, SRC_ROOT, FORCE_BUILD
 
-echo "Building Advanced SQLite3 Fuzzer..."
+set -o pipefail
 
-# Create build directory
-mkdir -p bld
-cd bld
+DURATION=${DURATION_SEC:-5}
+TIMEOUT=${TIMEOUT_SEC:-10}
+CC=${CC:-clang-18}
+CXX=${CXX:-clang++-18}
+LLVM_PROFDATA=${LLVM_PROFDATA:-llvm-profdata-18}
+LLVM_COV=${LLVM_COV:-llvm-cov-18}
 
-# Set environment variables for fuzzing
-export ASAN_OPTIONS=detect_leaks=0
+# fallback
+command -v "$CC" >/dev/null 2>&1 || CC=clang
+command -v "$CXX" >/dev/null 2>&1 || CXX=clang++
+command -v "$LLVM_PROFDATA" >/dev/null 2>&1 || LLVM_PROFDATA=llvm-profdata
+command -v "$LLVM_COV" >/dev/null 2>&1 || LLVM_COV=llvm-cov
 
-# Enhanced compiler flags for better coverage and debugging
-export CFLAGS="${CFLAGS:-} -DSQLITE_MAX_LENGTH=128000000 \
-               -DSQLITE_MAX_SQL_LENGTH=128000000 \
-               -DSQLITE_MAX_MEMORY=25000000 \
-               -DSQLITE_PRINTF_PRECISION_LIMIT=1048576 \
-               -DSQLITE_DEBUG=1 \
-               -DSQLITE_MAX_PAGE_COUNT=16384 \
-               -DSQLITE_ENABLE_JSON1=1 \
-               -DSQLITE_ENABLE_FTS3=1 \
-               -DSQLITE_ENABLE_FTS5=1 \
-               -DSQLITE_ENABLE_RTREE=1 \
-               -DSQLITE_ENABLE_GEOPOLY=1 \
-               -DSQLITE_ENABLE_DBSTAT_VTAB=1 \
-               -DSQLITE_ENABLE_DBPAGE_VTAB=1 \
-               -DSQLITE_ENABLE_STMTVTAB=1 \
-               -DSQLITE_THREADSAFE=0 \
-               -DSQLITE_OMIT_RANDOMNESS=1"
-
-# Set paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEPS_DIR="$ROOT_DIR/build/dependencies"
 FUZZER_DIR="$ROOT_DIR/fuzzers/ours_wo_spec"
+OBJ_DIR="$ROOT_DIR/build/obj"
 
-# Check if we have SQLite3 source
-if [ ! -f "$DEPS_DIR/sqlite3.c" ]; then
-    echo "Getting SQLite3 amalgamation..."
-    
-    # Try to find sqlite3.c in the system
-    SQLITE_SRC_PATH=""
-    
-    # Check common locations
-    if [ -f "/home/minseo/oss-fuzz/build/out/sqlite3/src/sqlite3/bld/sqlite3.c" ]; then
-        SQLITE_SRC_PATH="/home/minseo/oss-fuzz/build/out/sqlite3/src/sqlite3/bld"
-    elif [ -f "../build/out/sqlite3/src/sqlite3/bld/sqlite3.c" ]; then
-        SQLITE_SRC_PATH="../build/out/sqlite3/src/sqlite3/bld"
-    else
-        echo "SQLite3 source not found. Downloading amalgamation..."
-        wget -q https://www.sqlite.org/2023/sqlite-amalgamation-3440200.zip || {
-            echo "Failed to download SQLite3. Please manually copy sqlite3.c and sqlite3.h to build/dependencies/"
-            exit 1
-        }
-        unzip -q sqlite-amalgamation-3440200.zip
-        cp sqlite-amalgamation-3440200/sqlite3.c "$DEPS_DIR/"
-        cp sqlite-amalgamation-3440200/sqlite3.h "$DEPS_DIR/"
-        SQLITE_SRC_PATH="$DEPS_DIR"
-    fi
-    
-    if [ -n "$SQLITE_SRC_PATH" ] && [ "$SQLITE_SRC_PATH" != "$DEPS_DIR" ]; then
-        echo "Copying SQLite3 source from $SQLITE_SRC_PATH"
-        cp "$SQLITE_SRC_PATH/sqlite3.c" "$DEPS_DIR/"
-        cp "$SQLITE_SRC_PATH/sqlite3.h" "$DEPS_DIR/"
-    fi
+OUT_BIN="$ROOT_DIR/ours_wo_spec"
+COV_DIR="$ROOT_DIR/coverage_results/ours_wo_spec"
+ART_DIR="$ROOT_DIR/artifacts/ours_wo_spec"
+CORPUS_DIR="$ROOT_DIR/corpus/ours_wo_spec"
+
+SQLITE_SRC="${SQLITE_SRC:-$DEPS_DIR/sqlite3.c}"
+SRC_ROOT="${SRC_ROOT:-$ROOT_DIR}"
+
+echo "Using compilers: CC=$CC, CXX=$CXX"
+echo "llvm tools: llvm-profdata=$LLVM_PROFDATA, llvm-cov=$LLVM_COV"
+echo "Duration: ${DURATION}s, Timeout: ${TIMEOUT}s"
+echo "Root: $ROOT_DIR"
+echo ""
+
+mkdir -p "$OBJ_DIR" "$COV_DIR" "$ART_DIR" "$CORPUS_DIR"
+
+# 최소 시드
+if [ -z "$(ls -A "$CORPUS_DIR" 2>/dev/null || true)" ]; then
+  echo "corpus is empty; creating minimal seed..."
+  echo "SELECT 1;" > "$CORPUS_DIR/seed.sql"
 fi
 
-# Compile the advanced fuzzer
-echo "Compiling advanced fuzzer..."
+# 공통 플래그(문자열로)
+COV_FLAGS="-fprofile-instr-generate -fcoverage-mapping -g -O1"
+COMMON_DEFS="-DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_RTREE -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_RANDOMNESS=1"
+FUZZ_FLAGS="-fsanitize=fuzzer,address"
+LDLIBS="-lpthread -ldl -lm"
 
-# Set default compiler if not set
-if [ -z "${CC:-}" ]; then
-    CC=clang
-fi
+# 빌드
+if [[ ! -x "$OUT_BIN" || "${FORCE_BUILD:-0}" = "1" ]]; then
+  echo "Building libFuzzer-style ours_wo_spec -> $OUT_BIN"
 
-if [ -z "${CXX:-}" ]; then
-    CXX=clang++
-fi
+  echo "Compiling sqlite3.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o "$OBJ_DIR/sqlite3.o"
 
-# Compile SQLite3 first
-$CC $CFLAGS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o sqlite3.o
+  echo "Compiling fuzz.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -c "$FUZZER_DIR/fuzz.c" -o "$OBJ_DIR/fuzz.o"
 
-# Compile our advanced fuzzer
-$CC $CFLAGS -I"$DEPS_DIR" -c "$FUZZER_DIR/fuzz.c" -o advanced_fuzzer.o
-
-# Link everything together
-if [ -n "${LIB_FUZZING_ENGINE:-}" ]; then
-    # OSS-Fuzz environment
-    $CXX $CXXFLAGS \
-        advanced_fuzzer.o sqlite3.o -o "$ROOT_DIR/ours_wo_spec_ossfuzz" \
-        $LIB_FUZZING_ENGINE
+  echo "Linking $OUT_BIN with libFuzzer..."
+  $CXX $COV_FLAGS $FUZZ_FLAGS "$OBJ_DIR/sqlite3.o" "$OBJ_DIR/fuzz.o" $LDLIBS -o "$OUT_BIN"
+  chmod +x "$OUT_BIN"
 else
-    # Standalone testing
-    echo "Building standalone version for testing..."
-    
-    # Create a simple main function for standalone testing
-    cat > test_main.c << 'EOF'
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
+  echo "Found existing binary: $OUT_BIN (skipping build)"
+fi
+echo ""
 
-// Declare the fuzzer function
-int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size);
+# 퍼저 실행
+export LLVM_PROFILE_FILE="$COV_DIR/fuzzer-%p.profraw"
+echo "Running fuzzer: $OUT_BIN for $DURATION seconds..."
+set +e
+"$OUT_BIN" \
+  -max_total_time="$DURATION" \
+  -timeout="$TIMEOUT" \
+  -use_value_profile=1 \
+  -print_final_stats=1 \
+  -artifact_prefix="$ART_DIR/" \
+  -max_len=4096 \
+  "$CORPUS_DIR"
+rc=$?
+set -e
+echo "fuzzer exit code: $rc"
+echo ""
 
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: %s <test_file>\n", argv[0]);
-        return 1;
-    }
-    
-    FILE *f = fopen(argv[1], "rb");
-    if (!f) {
-        printf("Cannot open file: %s\n", argv[1]);
-        return 1;
-    }
-    
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
-    if (size <= 0 || size > 1000000) {
-        printf("Invalid file size: %ld\n", size);
-        fclose(f);
-        return 1;
-    }
-    
-    uint8_t *data = malloc(size);
-    if (!data) {
-        printf("Memory allocation failed\n");
-        fclose(f);
-        return 1;
-    }
-    
-    size_t read_size = fread(data, 1, size, f);
-    fclose(f);
-    
-    if (read_size != size) {
-        printf("Read error\n");
-        free(data);
-        return 1;
-    }
-    
-    printf("Testing with %zu bytes...\n", size);
-    int result = LLVMFuzzerTestOneInput(data, size);
-    printf("Fuzzer returned: %d\n", result);
-    
-    free(data);
-    return 0;
-}
-EOF
-    
-    $CC $CFLAGS -I"$DEPS_DIR" -c test_main.c -o test_main.o
-    
-    $CC $CFLAGS \
-        advanced_fuzzer.o sqlite3.o test_main.o \
-        -o "$ROOT_DIR/ours_wo_spec_standalone" \
-        -lpthread -ldl -lm
-        
-    echo "Standalone fuzzer built: $ROOT_DIR/ours_wo_spec_standalone"
+# 프로파일 병합
+shopt -s nullglob
+profs=( "$COV_DIR"/fuzzer-*.profraw )
+shopt -u nullglob
+if [ ${#profs[@]} -eq 0 ]; then
+  echo "No profraw files found in $COV_DIR — fuzzer may have exited early. Exiting."
+  exit 1
 fi
 
-echo "Build completed successfully!"
+echo "Merging ${#profs[@]} profraw files..."
+"$LLVM_PROFDATA" merge -sparse "${profs[@]}" -o "$COV_DIR/fuzzer.profdata"
 
-# Create some test cases
-echo "Creating test cases..."
-cd "$ROOT_DIR"
+# 리포트 생성(전체)
+echo "Generating llvm-cov summary (overall)..."
+"$LLVM_COV" report "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" > "$COV_DIR/coverage_summary.txt" || true
+echo "Saved: $COV_DIR/coverage_summary.txt"
 
-mkdir -p tests/testcases/sql tests/testcases/binary
+# sqlite3.c 전용
+if [ -f "$SQLITE_SRC" ]; then
+  echo "Generating sqlite-only report for $SQLITE_SRC..."
+  "$LLVM_COV" report "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" "$SQLITE_SRC" > "$COV_DIR/sqlite_summary.txt" || true
+  echo "Saved: $COV_DIR/sqlite_summary.txt"
 
-# Basic SQL test
-echo "SELECT 1;" > tests/testcases/sql/basic.sql
+  echo "Generating sqlite-only HTML..."
+  if ! "$LLVM_COV" show "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -format=html -output-dir="$COV_DIR/html_sqlite" -show-line-counts -show-regions -show-instantiations "$SQLITE_SRC" >/dev/null 2>&1; then
+    mkdir -p "$COV_DIR/html_sqlite"
+    "$LLVM_COV" show "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -show-line-counts -show-regions -show-instantiations "$SQLITE_SRC" > "$COV_DIR/html_sqlite/index.html"
+  fi
+  echo "Saved HTML: $COV_DIR/html_sqlite/index.html"
+else
+  echo "SQLITE_SRC not found ($SQLITE_SRC). Generating approximate sqlite report by ignoring driver files..."
+  IGNORE='(test_main|fuzzers/ours_wo_spec/fuzz\.c|fuzzers/.*/test_main|fuzzers/.*/ossfuzz|test_main)'
+  "$LLVM_COV" report "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex="$IGNORE" > "$COV_DIR/sqlite_summary.txt" || true
+  mkdir -p "$COV_DIR/html_sqlite"
+  "$LLVM_COV" show "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex="$IGNORE" -show-line-counts -show-regions -show-instantiations > "$COV_DIR/html_sqlite/index.html" || true
+  echo "Saved approximate HTML: $COV_DIR/html_sqlite/index.html"
+fi
 
-# Schema test (mode 2)
-printf "\x02\x10CREATE TABLE test(id INTEGER);" > tests/testcases/binary/schema.bin
-
-# Function test (mode 3)  
-printf "\x03\x20SELECT abs(-42);" > tests/testcases/binary/functions.bin
-
-# Blob test (mode 4)
-printf "\x04\x30SELECT randomblob(100);" > tests/testcases/binary/blob.bin
-
-# Transaction test (mode 5)
-printf "\x05\x40BEGIN; INSERT INTO t VALUES(1); COMMIT;" > tests/testcases/binary/transaction.bin
-
-echo "Test cases created in tests/testcases/ directory"
 echo ""
-echo "To run standalone tests:"
-echo "  ./ours_wo_spec_standalone tests/testcases/sql/basic.sql"
-echo "  ./ours_wo_spec_standalone tests/testcases/binary/schema.bin"
+echo "Done. Reports:"
+echo "  $COV_DIR/coverage_summary.txt"
+echo "  $COV_DIR/sqlite_summary.txt"
+echo "  $COV_DIR/html_sqlite/index.html"
 echo ""
-echo "To enable debug output, set environment variables:"
-echo "  export SQLITE_DEBUG_FLAGS=15  # Enable all debug output"

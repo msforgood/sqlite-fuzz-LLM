@@ -1,9 +1,11 @@
 # Build artifacts and generated files
 /bld/
+/corpus/
 /coverage_build/
 /gcov_build/
 /coverage_results/
 /gcov_results/
+*/obj/
 
 # Generated binaries
 *_standalone
