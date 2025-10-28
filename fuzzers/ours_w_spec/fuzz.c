@@ -8,6 +8,7 @@
 #include "autovacuum_harness.h"
 #include "freespace_harness.h"
 #include "pagemanagement_harness.h"
+#include "tablecursor_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -102,11 +103,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Check minimum size for any packet type */
   if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) && 
-      size < sizeof(FreeSpacePacket) && size < sizeof(PageMgmtPacket) ) return 0;
+      size < sizeof(FreeSpacePacket) && size < sizeof(PageMgmtPacket) &&
+      size < sizeof(TableCursorPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 9; /* 0-8 valid modes, added pagemanagement */
+  cx.fuzzMode = fuzzSelector % 10; /* 0-9 valid modes, added tablecursor */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -127,6 +129,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.allocMode = pPmPacket->operations % 16;
     cx.corruptionSeed = pPmPacket->corruptionMask;
     cx.memoryLimit = pPmPacket->bitvecSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_TABLECURSOR && size >= sizeof(TableCursorPacket) ) {
+    const TableCursorPacket *pTcPacket = (const TableCursorPacket*)data;
+    cx.targetPgno = pTcPacket->tableCount;
+    cx.allocMode = pTcPacket->createFlags % 8;
+    cx.corruptionSeed = pTcPacket->corruptionMask;
+    cx.memoryLimit = pTcPacket->operationCount;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -167,6 +175,8 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const FreeSpacePacket*)data)->pageType & 1 :
     (cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT) ?
     ((const PageMgmtPacket*)data)->operations & 1 :
+    (cx.fuzzMode == FUZZ_MODE_TABLECURSOR) ?
+    ((const TableCursorPacket*)data)->createFlags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -192,6 +202,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute enhanced page management fuzzing */
     fuzz_page_management(&cx, pPmPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_TABLECURSOR && size >= sizeof(TableCursorPacket) ) {
+    const TableCursorPacket *pTcPacket = (const TableCursorPacket*)data;
+    cx.execCnt = (pTcPacket->testData[0] % 50) + 1;
+    
+    /* Execute enhanced table/cursor management fuzzing */
+    fuzz_table_cursor_management(&cx, pTcPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -205,6 +221,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM ) packetSize = sizeof(AutoVacuumPacket);
   else if( cx.fuzzMode == FUZZ_MODE_FREESPACE ) packetSize = sizeof(FreeSpacePacket);
   else if( cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT ) packetSize = sizeof(PageMgmtPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_TABLECURSOR ) packetSize = sizeof(TableCursorPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
