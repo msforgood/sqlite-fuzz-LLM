@@ -1,33 +1,59 @@
-# Build artifacts
-bld/
-advanced_fuzzer_standalone
-advanced_ossfuzz
+# Build artifacts and generated files
+/bld/
+/coverage_build/
+/gcov_build/
+/coverage_results/
+/gcov_results/
 
-# Coverage build artifacts
-coverage_build/
-gcov_build/
-coverage_results/
-gcov_results/
+# Generated binaries
+*_standalone
+*_ossfuzz
 *_coverage
 *_gcov
+
+# Coverage data files
 *.gcda
 *.gcno
 *.gcov
 *.profraw
 *.profdata
 
-# Binary test files  
-*.bin
+# Analysis results (keep structure, ignore data)
+/analysis/results/coverage/*
+/analysis/results/performance/*
+/analysis/results/reports/*
+!/analysis/results/coverage/.gitkeep
+!/analysis/results/performance/.gitkeep
+!/analysis/results/reports/.gitkeep
+
+# Test artifacts
+/tests/testcases/binary/*.bin
+/tests/coverage_data/*/*.sql
+/tests/coverage_data/*/*.bin
 
 # SQLite temporary files
 *.db
 *.db-shm
 *.db-wal
 
-# Backup files
+# Backup and temporary files
 *~
 *.bak
+*.tmp
 
-# OS specific
+# OS specific files
 .DS_Store
 Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Downloaded dependencies (will be rebuilt)
+sqlite-amalgamation-*/
+
+# Compressed files
+*.zip
+*.tar.gz

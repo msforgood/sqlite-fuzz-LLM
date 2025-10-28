@@ -29,8 +29,14 @@ export CFLAGS="${CFLAGS:-} -DSQLITE_MAX_LENGTH=128000000 \
                -DSQLITE_THREADSAFE=0 \
                -DSQLITE_OMIT_RANDOMNESS=1"
 
+# Set paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DEPS_DIR="$ROOT_DIR/build/dependencies"
+FUZZER_DIR="$ROOT_DIR/fuzzers/advanced"
+
 # Check if we have SQLite3 source
-if [ ! -f "../sqlite3.c" ]; then
+if [ ! -f "$DEPS_DIR/sqlite3.c" ]; then
     echo "Getting SQLite3 amalgamation..."
     
     # Try to find sqlite3.c in the system
@@ -44,19 +50,19 @@ if [ ! -f "../sqlite3.c" ]; then
     else
         echo "SQLite3 source not found. Downloading amalgamation..."
         wget -q https://www.sqlite.org/2023/sqlite-amalgamation-3440200.zip || {
-            echo "Failed to download SQLite3. Please manually copy sqlite3.c and sqlite3.h to the parent directory."
+            echo "Failed to download SQLite3. Please manually copy sqlite3.c and sqlite3.h to build/dependencies/"
             exit 1
         }
         unzip -q sqlite-amalgamation-3440200.zip
-        cp sqlite-amalgamation-3440200/sqlite3.c ../
-        cp sqlite-amalgamation-3440200/sqlite3.h ../
-        SQLITE_SRC_PATH=".."
+        cp sqlite-amalgamation-3440200/sqlite3.c "$DEPS_DIR/"
+        cp sqlite-amalgamation-3440200/sqlite3.h "$DEPS_DIR/"
+        SQLITE_SRC_PATH="$DEPS_DIR"
     fi
     
-    if [ -n "$SQLITE_SRC_PATH" ]; then
+    if [ -n "$SQLITE_SRC_PATH" ] && [ "$SQLITE_SRC_PATH" != "$DEPS_DIR" ]; then
         echo "Copying SQLite3 source from $SQLITE_SRC_PATH"
-        cp "$SQLITE_SRC_PATH/sqlite3.c" ../
-        cp "$SQLITE_SRC_PATH/sqlite3.h" ../
+        cp "$SQLITE_SRC_PATH/sqlite3.c" "$DEPS_DIR/"
+        cp "$SQLITE_SRC_PATH/sqlite3.h" "$DEPS_DIR/"
     fi
 fi
 
@@ -73,16 +79,16 @@ if [ -z "${CXX:-}" ]; then
 fi
 
 # Compile SQLite3 first
-$CC $CFLAGS -I.. -c ../sqlite3.c -o sqlite3.o
+$CC $CFLAGS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o sqlite3.o
 
 # Compile our advanced fuzzer
-$CC $CFLAGS -I.. -c ../advanced_fuzzer.c -o advanced_fuzzer.o
+$CC $CFLAGS -I"$DEPS_DIR" -c "$FUZZER_DIR/advanced_fuzzer.c" -o advanced_fuzzer.o
 
 # Link everything together
 if [ -n "${LIB_FUZZING_ENGINE:-}" ]; then
     # OSS-Fuzz environment
     $CXX $CXXFLAGS \
-        advanced_fuzzer.o sqlite3.o -o ../advanced_ossfuzz \
+        advanced_fuzzer.o sqlite3.o -o "$ROOT_DIR/advanced_ossfuzz" \
         $LIB_FUZZING_ENGINE
 else
     # Standalone testing
@@ -145,44 +151,44 @@ int main(int argc, char **argv) {
 }
 EOF
     
-    $CC $CFLAGS -I.. -c test_main.c -o test_main.o
+    $CC $CFLAGS -I"$DEPS_DIR" -c test_main.c -o test_main.o
     
     $CC $CFLAGS \
         advanced_fuzzer.o sqlite3.o test_main.o \
-        -o ../advanced_fuzzer_standalone \
+        -o "$ROOT_DIR/advanced_fuzzer_standalone" \
         -lpthread -ldl -lm
         
-    echo "Standalone fuzzer built: ../advanced_fuzzer_standalone"
+    echo "Standalone fuzzer built: $ROOT_DIR/advanced_fuzzer_standalone"
 fi
 
 echo "Build completed successfully!"
 
 # Create some test cases
 echo "Creating test cases..."
-cd ..
+cd "$ROOT_DIR"
 
-mkdir -p testcases
+mkdir -p tests/testcases/sql tests/testcases/binary
 
 # Basic SQL test
-echo "SELECT 1;" > testcases/basic.sql
+echo "SELECT 1;" > tests/testcases/sql/basic.sql
 
 # Schema test (mode 2)
-printf "\x02\x10CREATE TABLE test(id INTEGER);" > testcases/schema.bin
+printf "\x02\x10CREATE TABLE test(id INTEGER);" > tests/testcases/binary/schema.bin
 
 # Function test (mode 3)  
-printf "\x03\x20SELECT abs(-42);" > testcases/functions.bin
+printf "\x03\x20SELECT abs(-42);" > tests/testcases/binary/functions.bin
 
 # Blob test (mode 4)
-printf "\x04\x30SELECT randomblob(100);" > testcases/blob.bin
+printf "\x04\x30SELECT randomblob(100);" > tests/testcases/binary/blob.bin
 
 # Transaction test (mode 5)
-printf "\x05\x40BEGIN; INSERT INTO t VALUES(1); COMMIT;" > testcases/transaction.bin
+printf "\x05\x40BEGIN; INSERT INTO t VALUES(1); COMMIT;" > tests/testcases/binary/transaction.bin
 
-echo "Test cases created in testcases/ directory"
+echo "Test cases created in tests/testcases/ directory"
 echo ""
 echo "To run standalone tests:"
-echo "  ./advanced_fuzzer_standalone testcases/basic.sql"
-echo "  ./advanced_fuzzer_standalone testcases/schema.bin"
+echo "  ./advanced_fuzzer_standalone tests/testcases/sql/basic.sql"
+echo "  ./advanced_fuzzer_standalone tests/testcases/binary/schema.bin"
 echo ""
 echo "To enable debug output, set environment variables:"
 echo "  export SQLITE_DEBUG_FLAGS=15  # Enable all debug output"
