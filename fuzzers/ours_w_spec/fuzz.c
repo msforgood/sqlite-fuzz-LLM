@@ -7,6 +7,7 @@
 #include "btree_harness.h"
 #include "autovacuum_harness.h"
 #include "freespace_harness.h"
+#include "pagemanagement_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -100,11 +101,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   memset(&cx, 0, sizeof(cx));
   
   /* Check minimum size for any packet type */
-  if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) && size < sizeof(FreeSpacePacket) ) return 0;
+  if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) && 
+      size < sizeof(FreeSpacePacket) && size < sizeof(PageMgmtPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 8; /* 0-7 valid modes, added freespace */
+  cx.fuzzMode = fuzzSelector % 9; /* 0-8 valid modes, added pagemanagement */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -119,6 +121,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.allocMode = pFsPacket->pageType % 4;
     cx.corruptionSeed = pFsPacket->corruptionMask;
     cx.memoryLimit = pFsPacket->freeblockCount;
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT && size >= sizeof(PageMgmtPacket) ) {
+    const PageMgmtPacket *pPmPacket = (const PageMgmtPacket*)data;
+    cx.targetPgno = pPmPacket->pageCount;
+    cx.allocMode = pPmPacket->operations % 16;
+    cx.corruptionSeed = pPmPacket->corruptionMask;
+    cx.memoryLimit = pPmPacket->bitvecSize;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -157,6 +165,8 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const AutoVacuumPacket*)data)->scenario & 1 :
     (cx.fuzzMode == FUZZ_MODE_FREESPACE) ? 
     ((const FreeSpacePacket*)data)->pageType & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT) ?
+    ((const PageMgmtPacket*)data)->operations & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -176,6 +186,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute enhanced free space computation fuzzing */
     fuzz_freespace_computation(&cx, pFsPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT && size >= sizeof(PageMgmtPacket) ) {
+    const PageMgmtPacket *pPmPacket = (const PageMgmtPacket*)data;
+    cx.execCnt = (pPmPacket->testData[0] % 50) + 1;
+    
+    /* Execute enhanced page management fuzzing */
+    fuzz_page_management(&cx, pPmPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -188,6 +204,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   size_t packetSize = sizeof(BtreeAllocPacket);
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM ) packetSize = sizeof(AutoVacuumPacket);
   else if( cx.fuzzMode == FUZZ_MODE_FREESPACE ) packetSize = sizeof(FreeSpacePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT ) packetSize = sizeof(PageMgmtPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
