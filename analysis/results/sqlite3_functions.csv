@@ -2,16 +2,16 @@ function_name,file,line_number,return_type,category,subcategory,fuzzing_priority
 allocateBtreePage,btree.c,3991,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int allocateBtreePage(BtShared *, MemPage **, Pgno *, Pgno, u8);", True
 allocateBtreePage,btree.c,6475,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int allocateBtreePage(, True
 autoVacuumCommit,btree.c,4174,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int autoVacuumCommit(Btree *p){, True
-btreeBeginTrans,btree.c,3783,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeBeginTrans(p,wrflag,pSchemaVersion);", True
-btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,return btreeCellSizeCheck(pPage);, True
+btreeBeginTrans,btree.c,3783,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeBeginTrans(p,wrflag,pSchemaVersion);", False
+btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,return btreeCellSizeCheck(pPage);, False
 btreeClearHasContent,btree.c,682,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeClearHasContent(BtShared *pBt){, True
 btreeComputeFreeSpace,btree.c,2091,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeComputeFreeSpace(MemPage *pPage){, True
 btreeCreateTable,btree.c,10015,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeCreateTable(Btree *p, Pgno *piTable, int createTabFlags){", True
-btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, False
+btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, True
 btreeCursor,btree.c,4751,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeCursor(p, iTable, wrFlag, pKeyInfo, pCur);", False
-btreeCursorWithLock,btree.c,4728,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeCursorWithLock(, False
+btreeCursorWithLock,btree.c,4728,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeCursorWithLock(, True
 btreeCursorWithLock,btree.c,4749,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeCursorWithLock(p, iTable, wrFlag, pKeyInfo, pCur);", False
-btreeDropTable,btree.c,10289,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int btreeDropTable(Btree *p, Pgno iTable, int *piMoved){", False
+btreeDropTable,btree.c,10289,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int btreeDropTable(Btree *p, Pgno iTable, int *piMoved){", True
 btreeEndTransaction,btree.c,4312,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeEndTransaction(Btree *p){, False
 btreeGetHasContent,btree.c,673,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeGetHasContent(BtShared *pBt, Pgno pgno){", True
 btreeGetPage,btree.c,2328,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeGetPage(, False
