@@ -54,6 +54,11 @@ Thumbs.db
 # Downloaded dependencies (will be rebuilt)
 sqlite-amalgamation-*/
 
+# Large SQLite3 source repository (keep organized copy)
+/sqlite3-source/
+
 # Compressed files
 *.zip
 *.tar.gz
+
+/*.md
