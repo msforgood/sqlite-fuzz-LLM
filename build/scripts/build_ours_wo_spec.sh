@@ -4,7 +4,7 @@
 
 set -o pipefail
 
-DURATION=${DURATION_SEC:-5}
+DURATION=${DURATION_SEC:-36000}
 TIMEOUT=${TIMEOUT_SEC:-10}
 CC=${CC:-clang-18}
 CXX=${CXX:-clang++-18}
@@ -123,9 +123,27 @@ else
   echo "Saved approximate HTML: $COV_DIR/html_sqlite/index.html"
 fi
 
+# LCOV visualization
+echo "Generating LCOV format for visualization..."
+"$LLVM_COV" export "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex='harness.cc|execute-rt.cc|fuzz\.c|ossfuzz\.c' -format=lcov > "$COV_DIR/fuzzer.lcov" || true
+echo "Saved LCOV: $COV_DIR/fuzzer.lcov"
+
+# Check if lcov/genhtml is available
+if command -v genhtml >/dev/null 2>&1; then
+  echo "Generating HTML visualization with genhtml..."
+  genhtml --output-directory "$COV_DIR/lcov_html/" "$COV_DIR/fuzzer.lcov" >/dev/null 2>&1 || true
+  echo "Saved LCOV HTML: $COV_DIR/lcov_html/index.html"
+else
+  echo "genhtml not found. Install with: apt install lcov"
+fi
+
 echo ""
 echo "Done. Reports:"
 echo "  $COV_DIR/coverage_summary.txt"
 echo "  $COV_DIR/sqlite_summary.txt"
 echo "  $COV_DIR/html_sqlite/index.html"
+echo "  $COV_DIR/fuzzer.lcov"
+if command -v genhtml >/dev/null 2>&1; then
+  echo "  $COV_DIR/lcov_html/index.html"
+fi
 echo ""
