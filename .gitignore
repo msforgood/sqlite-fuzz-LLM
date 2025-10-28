@@ -60,5 +60,3 @@ sqlite-amalgamation-*/
 # Compressed files
 *.zip
 *.tar.gz
-
-/*.md
