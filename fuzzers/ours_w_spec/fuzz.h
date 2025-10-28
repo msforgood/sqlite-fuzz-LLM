@@ -20,6 +20,7 @@
 #define FUZZ_MODE_MEMORY_STRESS  0x04  /* Test memory pressure */
 #define FUZZ_MODE_CONCURRENT     0x05  /* Test concurrent access */
 #define FUZZ_MODE_AUTOVACUUM     0x06  /* Target autoVacuumCommit specifically */
+#define FUZZ_MODE_FREESPACE      0x07  /* Target btreeComputeFreeSpace specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

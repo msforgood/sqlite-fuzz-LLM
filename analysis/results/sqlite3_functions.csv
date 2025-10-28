@@ -5,7 +5,7 @@ autoVacuumCommit,btree.c,4174,int,B-Tree,Index Management,Critical,Medium,False,
 btreeBeginTrans,btree.c,3783,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeBeginTrans(p,wrflag,pSchemaVersion);", False
 btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,return btreeCellSizeCheck(pPage);, False
 btreeClearHasContent,btree.c,682,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeClearHasContent(BtShared *pBt){, False
-btreeComputeFreeSpace,btree.c,2091,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeComputeFreeSpace(MemPage *pPage){, False
+btreeComputeFreeSpace,btree.c,2091,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeComputeFreeSpace(MemPage *pPage){, True
 btreeCreateTable,btree.c,10015,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeCreateTable(Btree *p, Pgno *piTable, int createTabFlags){", False
 btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, False
 btreeCursor,btree.c,4751,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeCursor(p, iTable, wrFlag, pKeyInfo, pCur);", False

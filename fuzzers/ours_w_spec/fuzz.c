@@ -6,6 +6,7 @@
 #include "fuzz.h"
 #include "btree_harness.h"
 #include "autovacuum_harness.h"
+#include "freespace_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -98,12 +99,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   memset(&cx, 0, sizeof(cx));
   
-  /* Check minimum size for either packet type */
-  if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) ) return 0;
+  /* Check minimum size for any packet type */
+  if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) && size < sizeof(FreeSpacePacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 7; /* 0-6 valid modes, added autoVacuum */
+  cx.fuzzMode = fuzzSelector % 8; /* 0-7 valid modes, added freespace */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -112,6 +113,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.allocMode = pAvPacket->vacuumMode % 3;
     cx.corruptionSeed = pAvPacket->corruptionSeed;
     cx.memoryLimit = pAvPacket->customVacFunc;
+  } else if( cx.fuzzMode == FUZZ_MODE_FREESPACE && size >= sizeof(FreeSpacePacket) ) {
+    const FreeSpacePacket *pFsPacket = (const FreeSpacePacket*)data;
+    cx.targetPgno = pFsPacket->cellCount;
+    cx.allocMode = pFsPacket->pageType % 4;
+    cx.corruptionSeed = pFsPacket->corruptionMask;
+    cx.memoryLimit = pFsPacket->freeblockCount;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -146,7 +153,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   sqlite3_hard_heap_limit64(20000000);
   
   /* Configure foreign keys based on packet */
-  sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, pPacket->flags & 1, &rc);
+  uint32_t fkeyFlag = (cx.fuzzMode == FUZZ_MODE_AUTOVACUUM) ? 
+    ((const AutoVacuumPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_FREESPACE) ? 
+    ((const FreeSpacePacket*)data)->pageType & 1 :
+    ((const BtreeAllocPacket*)data)->flags & 1;
+  sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
   /* Block debug pragmas */
   sqlite3_set_authorizer(cx.db, block_debug_pragmas, 0);
@@ -158,6 +170,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute enhanced auto-vacuum commit fuzzing */
     fuzz_autovacuum_commit(&cx, pAvPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_FREESPACE && size >= sizeof(FreeSpacePacket) ) {
+    const FreeSpacePacket *pFsPacket = (const FreeSpacePacket*)data;
+    cx.execCnt = (pFsPacket->testData[0] % 50) + 1;
+    
+    /* Execute enhanced free space computation fuzzing */
+    fuzz_freespace_computation(&cx, pFsPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -167,7 +185,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   }
   
   /* If remaining data, treat as SQL */
-  size_t packetSize = (cx.fuzzMode == FUZZ_MODE_AUTOVACUUM) ? sizeof(AutoVacuumPacket) : sizeof(BtreeAllocPacket);
+  size_t packetSize = sizeof(BtreeAllocPacket);
+  if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM ) packetSize = sizeof(AutoVacuumPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_FREESPACE ) packetSize = sizeof(FreeSpacePacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
