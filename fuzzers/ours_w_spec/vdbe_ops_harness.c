@@ -206,7 +206,9 @@ int fuzz_mem_writeable(const uint8_t *data, size_t size) {
             
             /* Force string operations that may trigger memory making writeable */
             if (text && len > 0) {
-                sqlite3_mprintf("%.*s", 10, text);
+                char *tmp = sqlite3_mprintf("%.*s", 10, text);
+                sqlite3_free(tmp);
+
             }
         }
         sqlite3_finalize(stmt);
