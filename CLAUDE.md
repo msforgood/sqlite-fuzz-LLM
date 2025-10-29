@@ -306,6 +306,11 @@ git commit -m "feat: Add fuzzing harness for ${FUNC_NAME}" \
 git push origin $BRANCH_NAME
 ```
 
+### 5) Main 브랜치에 병합
+
+merge 후에 main으로 checkout
+git pull origin main
+
 ## 8) 함수 리스트 업데이트
 퍼징 하니스 개발을 진행한 함수에 대해 `./analysis/results/sqlite3_functions.csv`에서 fuzzed 열의 False 값을 True로 변경하기
 

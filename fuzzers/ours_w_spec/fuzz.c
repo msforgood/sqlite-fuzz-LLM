@@ -8,6 +8,9 @@
 #include "autovacuum_harness.h"
 #include "freespace_harness.h"
 #include "pagemanagement_harness.h"
+#include "btree_trans_harness.h"
+#include "cell_check_harness.h"
+#include "create_table_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -102,11 +105,13 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Check minimum size for any packet type */
   if( size < sizeof(BtreeAllocPacket) && size < sizeof(AutoVacuumPacket) && 
-      size < sizeof(FreeSpacePacket) && size < sizeof(PageMgmtPacket) ) return 0;
+      size < sizeof(FreeSpacePacket) && size < sizeof(PageMgmtPacket) &&
+      size < sizeof(BtreeTransPacket) && size < sizeof(CellCheckPacket) &&
+      size < sizeof(CreateTablePacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 9; /* 0-8 valid modes, added pagemanagement */
+  cx.fuzzMode = fuzzSelector % 12; /* 0-11 valid modes, added btree_trans, cell_check, create_table */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -127,6 +132,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.allocMode = pPmPacket->operations % 16;
     cx.corruptionSeed = pPmPacket->corruptionMask;
     cx.memoryLimit = pPmPacket->bitvecSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_TRANS && size >= sizeof(BtreeTransPacket) ) {
+    const BtreeTransPacket *pBtPacket = (const BtreeTransPacket*)data;
+    cx.targetPgno = pBtPacket->schemaVersion;
+    cx.allocMode = pBtPacket->transType;
+    cx.corruptionSeed = pBtPacket->corruptionMask;
+  } else if( cx.fuzzMode == FUZZ_MODE_CELL_CHECK && size >= sizeof(CellCheckPacket) ) {
+    const CellCheckPacket *pCcPacket = (const CellCheckPacket*)data;
+    cx.targetPgno = pCcPacket->pageSize;
+    cx.allocMode = pCcPacket->pageType;
+    cx.corruptionSeed = pCcPacket->corruptOffset;
+  } else if( cx.fuzzMode == FUZZ_MODE_CREATE_TABLE && size >= sizeof(CreateTablePacket) ) {
+    const CreateTablePacket *pCtPacket = (const CreateTablePacket*)data;
+    cx.targetPgno = pCtPacket->tableId;
+    cx.allocMode = pCtPacket->createFlags;
+    cx.corruptionSeed = pCtPacket->initialPages;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -167,6 +187,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const FreeSpacePacket*)data)->pageType & 1 :
     (cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT) ?
     ((const PageMgmtPacket*)data)->operations & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_TRANS) ?
+    ((const BtreeTransPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CELL_CHECK) ?
+    ((const CellCheckPacket*)data)->corruption & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CREATE_TABLE) ?
+    ((const CreateTablePacket*)data)->createFlags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -192,6 +218,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute enhanced page management fuzzing */
     fuzz_page_management(&cx, pPmPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_TRANS && size >= sizeof(BtreeTransPacket) ) {
+    const BtreeTransPacket *pBtPacket = (const BtreeTransPacket*)data;
+    cx.execCnt = (pBtPacket->testData[0] % 50) + 1;
+    
+    /* Execute B-Tree transaction fuzzing */
+    fuzz_btree_transaction(&cx, pBtPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_CELL_CHECK && size >= sizeof(CellCheckPacket) ) {
+    const CellCheckPacket *pCcPacket = (const CellCheckPacket*)data;
+    cx.execCnt = (pCcPacket->cellData[0] % 50) + 1;
+    
+    /* Execute cell size check fuzzing */
+    fuzz_cell_size_check(&cx, pCcPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_CREATE_TABLE && size >= sizeof(CreateTablePacket) ) {
+    const CreateTablePacket *pCtPacket = (const CreateTablePacket*)data;
+    cx.execCnt = (pCtPacket->testData[0] % 50) + 1;
+    
+    /* Execute table creation fuzzing */
+    fuzz_create_table(&cx, pCtPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -205,6 +249,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM ) packetSize = sizeof(AutoVacuumPacket);
   else if( cx.fuzzMode == FUZZ_MODE_FREESPACE ) packetSize = sizeof(FreeSpacePacket);
   else if( cx.fuzzMode == FUZZ_MODE_PAGEMANAGEMENT ) packetSize = sizeof(PageMgmtPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_TRANS ) packetSize = sizeof(BtreeTransPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_CELL_CHECK ) packetSize = sizeof(CellCheckPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_CREATE_TABLE ) packetSize = sizeof(CreateTablePacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

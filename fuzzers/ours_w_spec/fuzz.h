@@ -22,6 +22,11 @@
 #define FUZZ_MODE_AUTOVACUUM     0x06  /* Target autoVacuumCommit specifically */
 #define FUZZ_MODE_FREESPACE      0x07  /* Target btreeComputeFreeSpace specifically */
 #define FUZZ_MODE_PAGEMANAGEMENT 0x08  /* Target page management functions */
+#define FUZZ_MODE_BTREE_TRANS    0x09  /* Target btreeBeginTrans */
+#define FUZZ_MODE_CELL_CHECK     0x0A  /* Target btreeCellSizeCheck */
+#define FUZZ_MODE_CREATE_TABLE   0x0B  /* Target btreeCreateTable */
+#define FUZZ_MODE_CURSOR         0x0C  /* Target btreeCursor */
+#define FUZZ_MODE_DROP_TABLE     0x0D  /* Target btreeDropTable */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -67,6 +72,56 @@ typedef struct AutoVacuumPacket {
   uint32_t customVacFunc;    /* Custom vacuum function behavior */
   uint8_t testData[24];      /* Additional test parameters */
 } AutoVacuumPacket;
+
+/* Input packet for btreeBeginTrans fuzzing */
+typedef struct BtreeTransPacket {
+  uint8_t transType;         /* Transaction type (0=READ, 1=WRITE) */
+  uint8_t flags;             /* Test flags */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t schemaVersion;    /* Schema version number */
+  uint32_t corruptionMask;   /* Corruption simulation mask */
+  uint8_t testData[20];      /* Additional test parameters */
+} BtreeTransPacket;
+
+/* Input packet for btreeCellSizeCheck fuzzing */
+typedef struct CellCheckPacket {
+  uint8_t pageType;          /* Page type (leaf/interior/index) */
+  uint8_t corruption;        /* Corruption scenario selector */
+  uint16_t cellCount;        /* Number of cells on page */
+  uint32_t pageSize;         /* Page size */
+  uint32_t corruptOffset;    /* Offset for corruption injection */
+  uint8_t cellData[20];      /* Cell data pattern */
+} CellCheckPacket;
+
+/* Input packet for btreeCreateTable fuzzing */
+typedef struct CreateTablePacket {
+  uint8_t createFlags;       /* Table creation flags */
+  uint8_t pageType;          /* Initial page type */
+  uint16_t scenario;         /* Test scenario */
+  uint32_t initialPages;     /* Initial page allocation */
+  uint32_t tableId;          /* Preferred table ID */
+  uint8_t testData[20];      /* Additional parameters */
+} CreateTablePacket;
+
+/* Input packet for btreeCursor fuzzing */
+typedef struct CursorPacket {
+  uint8_t wrFlag;            /* Write flag (0=READ, 1=WRITE, 2=FORDELETE) */
+  uint8_t keyType;           /* Key type selector */
+  uint16_t scenario;         /* Test scenario */
+  uint32_t tableRoot;        /* Root page number */
+  uint32_t keyFields;        /* Number of key fields */
+  uint8_t keyData[20];       /* Key pattern data */
+} CursorPacket;
+
+/* Input packet for btreeDropTable fuzzing */
+typedef struct DropTablePacket {
+  uint8_t dropMode;          /* Drop mode selector */
+  uint8_t compactAfter;      /* Whether to compact after drop */
+  uint16_t scenario;         /* Test scenario */
+  uint32_t tableRoot;        /* Table root page to drop */
+  uint32_t expectedMoved;    /* Expected moved page */
+  uint8_t testData[20];      /* Additional parameters */
+} DropTablePacket;
 
 /* Core function declarations */
 int progress_handler(void *pClientData);
