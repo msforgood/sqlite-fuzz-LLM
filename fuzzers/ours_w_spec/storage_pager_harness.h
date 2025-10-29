@@ -1,18 +1,14 @@
 /*
-** Storage Pager Harness Header
-** Targets: pagerAcquireMapPage, pagerBeginReadTransaction, pagerExclusiveLock, getPageNormal
-** Enhanced coverage for Storage Page Management operations
+** Storage Pager Functions Harness Header  
+** Target functions: assert_pager_state, checkPage, pageInJournal, pagerFixMaplimit
+** Specification-based fuzzing for storage pager operations
 */
 #ifndef STORAGE_PAGER_HARNESS_H
 #define STORAGE_PAGER_HARNESS_H
 
 #include "fuzz.h"
 
-/* Storage pager fuzzing modes */
-#define FUZZ_MODE_PAGER_ACQUIRE_MMAP     39  /* pagerAcquireMapPage */
-#define FUZZ_MODE_PAGER_BEGIN_READ_TXN   40  /* pagerBeginReadTransaction */
-#define FUZZ_MODE_PAGER_EXCLUSIVE_LOCK   41  /* pagerExclusiveLock */
-#define FUZZ_MODE_PAGER_GET_PAGE_NORMAL  42  /* getPageNormal */
+/* Storage pager fuzzing modes - defined in fuzz.h */
 
 /* Test scenarios for pager operations */
 #define PAGER_SCENARIO_NORMAL      0x01  /* Normal operation */
@@ -40,60 +36,12 @@
 #define PAGER_WRITER_FINISHED 5
 #define PAGER_ERROR          6
 
-/* Input packet for pagerAcquireMapPage fuzzing */
-typedef struct PagerAcquireMapPacket {
-  uint8_t scenario;          /* Test scenario selector */
-  uint8_t lockLevel;         /* Current lock level */
-  uint32_t pgno;             /* Page number to acquire */
-  uint32_t pageSize;         /* Page size selector */
-  uint32_t mmapSize;         /* Memory map size */
-  uint32_t corruption_flags; /* Corruption pattern */
-  uint8_t testData[16];      /* Test content */
-} PagerAcquireMapPacket;
-
-/* Input packet for pagerBeginReadTransaction fuzzing */
-typedef struct PagerBeginReadTxnPacket {
-  uint8_t scenario;          /* Test scenario selector */
-  uint8_t pagerState;        /* Initial pager state */
-  uint8_t lockLevel;         /* Current lock level */
-  uint8_t walEnabled;        /* WAL mode enabled */
-  uint32_t changeCounter;    /* Change counter value */
-  uint32_t walSize;          /* WAL file size */
-  int32_t readMark;          /* Read mark index */
-  uint32_t corruption_flags; /* Corruption pattern */
-  uint8_t testData[12];      /* Test parameters */
-} PagerBeginReadTxnPacket;
-
-/* Input packet for pagerExclusiveLock fuzzing */
-typedef struct PagerExclusiveLockPacket {
-  uint8_t scenario;          /* Test scenario selector */
-  uint8_t currentLock;       /* Current lock level */
-  uint8_t exclusiveMode;     /* Exclusive mode flag */
-  uint8_t readOnly;          /* Read-only flag */
-  uint8_t tempFile;          /* Temporary file flag */
-  uint32_t timeout;          /* Lock timeout */
-  uint32_t syncFlags;        /* Synchronization flags */
-  uint32_t corruption_flags; /* Corruption pattern */
-  uint8_t testData[12];      /* Test parameters */
-} PagerExclusiveLockPacket;
-
-/* Input packet for getPageNormal fuzzing */
-typedef struct GetPageNormalPacket {
-  uint8_t scenario;          /* Test scenario selector */
-  uint8_t pagerState;        /* Pager state */
-  uint8_t fetchFlags;        /* Page fetch flags */
-  uint8_t noContent;         /* No content flag */
-  uint32_t pgno;             /* Page number */
-  uint32_t pageSize;         /* Page size */
-  uint32_t cacheSize;        /* Cache size limit */
-  uint32_t corruption_flags; /* Corruption pattern */
-  uint8_t testData[12];      /* Test content */
-} GetPageNormalPacket;
+/* Packet structures defined in fuzz.h */
 
 /* Function declarations for storage pager fuzzing */
-int fuzz_pager_acquire_mmap(FuzzCtx *pCtx, const PagerAcquireMapPacket *pPacket);
-int fuzz_pager_begin_read_txn(FuzzCtx *pCtx, const PagerBeginReadTxnPacket *pPacket);
-int fuzz_pager_exclusive_lock(FuzzCtx *pCtx, const PagerExclusiveLockPacket *pPacket);
-int fuzz_get_page_normal(FuzzCtx *pCtx, const GetPageNormalPacket *pPacket);
+void fuzz_assert_pager_state(FuzzCtx *pCtx, const AssertPagerStatePacket *pPacket);
+void fuzz_check_page(FuzzCtx *pCtx, const CheckPagePacket *pPacket);
+void fuzz_page_in_journal(FuzzCtx *pCtx, const PageInJournalPacket *pPacket);
+void fuzz_pager_fix_maplimit(FuzzCtx *pCtx, const PagerFixMaplimitPacket *pPacket);
 
 #endif /* STORAGE_PAGER_HARNESS_H */

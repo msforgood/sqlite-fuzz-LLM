@@ -139,7 +139,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 61; /* 0-60 valid modes, added VDBE auxiliary extended harnesses */
+  cx.fuzzMode = fuzzSelector % 65; /* 0-64 valid modes, added Storage Pager harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -261,6 +261,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pAfcPacket->keySize;
     cx.allocMode = pAfcPacket->fieldCount;
     cx.corruptionSeed = pAfcPacket->headerSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_ASSERT_PAGER_STATE && size >= sizeof(AssertPagerStatePacket) ) {
+    const AssertPagerStatePacket *pApsPacket = (const AssertPagerStatePacket*)data;
+    cx.targetPgno = pApsPacket->dbSize;
+    cx.allocMode = pApsPacket->pagerState;
+    cx.corruptionSeed = pApsPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_CHECK_PAGE && size >= sizeof(CheckPagePacket) ) {
+    const CheckPagePacket *pCpPacket = (const CheckPagePacket*)data;
+    cx.targetPgno = pCpPacket->pgno;
+    cx.allocMode = pCpPacket->pageType;
+    cx.corruptionSeed = pCpPacket->checksum;
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGE_IN_JOURNAL && size >= sizeof(PageInJournalPacket) ) {
+    const PageInJournalPacket *pPjPacket = (const PageInJournalPacket*)data;
+    cx.targetPgno = pPjPacket->pgno;
+    cx.allocMode = pPjPacket->journalMode;
+    cx.corruptionSeed = pPjPacket->journalSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_FIX_MAPLIMIT && size >= sizeof(PagerFixMaplimitPacket) ) {
+    const PagerFixMaplimitPacket *pPfmPacket = (const PagerFixMaplimitPacket*)data;
+    cx.targetPgno = pPfmPacket->dbSize;
+    cx.allocMode = pPfmPacket->scenario;
+    cx.corruptionSeed = pPfmPacket->mmapSize;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -359,14 +379,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const VdbeValueFreePacket*)data)->flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC) ?
     ((const VdbeEphemeralFuncPacket*)data)->flags & 1 :
-    (cx.fuzzMode == FUZZ_MODE_PAGER_ACQUIRE_MMAP) ?
-    ((const PagerAcquireMapPacket*)data)->corruption_flags & 1 :
-    (cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN) ?
-    ((const PagerBeginReadTxnPacket*)data)->corruption_flags & 1 :
-    (cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK) ?
-    ((const PagerExclusiveLockPacket*)data)->corruption_flags & 1 :
-    (cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL) ?
-    ((const GetPageNormalPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_ASSERT_PAGER_STATE) ?
+    ((const AssertPagerStatePacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CHECK_PAGE) ?
+    ((const CheckPagePacket*)data)->corruptionType & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGE_IN_JOURNAL) ?
+    ((const PageInJournalPacket*)data)->syncFlags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGER_FIX_MAPLIMIT) ?
+    ((const PagerFixMaplimitPacket*)data)->mmapEnabled & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT) ?
     ((const VdbeCheckActiveCntPacket*)data)->corruption_flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL) ?
@@ -586,30 +606,6 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE ephemeral function fuzzing */
     fuzz_vdbe_ephemeral_function(&cx, pVdbeHeader);
-  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_ACQUIRE_MMAP && size >= sizeof(PagerAcquireMapPacket) ) {
-    const PagerAcquireMapPacket *pPagerPacket = (const PagerAcquireMapPacket*)data;
-    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
-    
-    /* Execute Storage Pager acquire mmap fuzzing */
-    fuzz_pager_acquire_mmap(&cx, pPagerPacket);
-  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN && size >= sizeof(PagerBeginReadTxnPacket) ) {
-    const PagerBeginReadTxnPacket *pPagerPacket = (const PagerBeginReadTxnPacket*)data;
-    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
-    
-    /* Execute Storage Pager begin read transaction fuzzing */
-    fuzz_pager_begin_read_txn(&cx, pPagerPacket);
-  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK && size >= sizeof(PagerExclusiveLockPacket) ) {
-    const PagerExclusiveLockPacket *pPagerPacket = (const PagerExclusiveLockPacket*)data;
-    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
-    
-    /* Execute Storage Pager exclusive lock fuzzing */
-    fuzz_pager_exclusive_lock(&cx, pPagerPacket);
-  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL && size >= sizeof(GetPageNormalPacket) ) {
-    const GetPageNormalPacket *pPagerPacket = (const GetPageNormalPacket*)data;
-    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
-    
-    /* Execute Storage Pager get page normal fuzzing */
-    fuzz_get_page_normal(&cx, pPagerPacket);
   } else if( cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT && size >= sizeof(VdbeCheckActiveCntPacket) ) {
     const VdbeCheckActiveCntPacket *pVdbePacket = (const VdbeCheckActiveCntPacket*)data;
     cx.execCnt = (pVdbePacket->testData[0] % 50) + 1;
@@ -718,6 +714,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE assert field count fuzzing */
     fuzz_assert_field_count(&cx, pAfcPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_ASSERT_PAGER_STATE && size >= sizeof(AssertPagerStatePacket) ) {
+    const AssertPagerStatePacket *pApsPacket = (const AssertPagerStatePacket*)data;
+    cx.execCnt = (pApsPacket->testData[0] % 50) + 1;
+    
+    /* Execute assert pager state fuzzing */
+    fuzz_assert_pager_state(&cx, pApsPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_CHECK_PAGE && size >= sizeof(CheckPagePacket) ) {
+    const CheckPagePacket *pCpPacket = (const CheckPagePacket*)data;
+    cx.execCnt = (pCpPacket->pageData[0] % 50) + 1;
+    
+    /* Execute check page fuzzing */
+    fuzz_check_page(&cx, pCpPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGE_IN_JOURNAL && size >= sizeof(PageInJournalPacket) ) {
+    const PageInJournalPacket *pPjPacket = (const PageInJournalPacket*)data;
+    cx.execCnt = (pPjPacket->journalData[0] % 50) + 1;
+    
+    /* Execute page in journal fuzzing */
+    fuzz_page_in_journal(&cx, pPjPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_FIX_MAPLIMIT && size >= sizeof(PagerFixMaplimitPacket) ) {
+    const PagerFixMaplimitPacket *pPfmPacket = (const PagerFixMaplimitPacket*)data;
+    cx.execCnt = (pPfmPacket->testData[0] % 50) + 1;
+    
+    /* Execute pager fix maplimit fuzzing */
+    fuzz_pager_fix_maplimit(&cx, pPfmPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -760,10 +780,6 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_STAT4_PROBE ) packetSize = sizeof(VdbeStat4ProbePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_VALUE_FREE ) packetSize = sizeof(VdbeValueFreePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC ) packetSize = sizeof(VdbeEphemeralFuncPacket);
-  else if( cx.fuzzMode == FUZZ_MODE_PAGER_ACQUIRE_MMAP ) packetSize = sizeof(PagerAcquireMapPacket);
-  else if( cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN ) packetSize = sizeof(PagerBeginReadTxnPacket);
-  else if( cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK ) packetSize = sizeof(PagerExclusiveLockPacket);
-  else if( cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL ) packetSize = sizeof(GetPageNormalPacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT ) packetSize = sizeof(VdbeCheckActiveCntPacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL ) packetSize = sizeof(VdbeAddFunctionCallPacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4 ) packetSize = sizeof(VdbeAddOp4Packet);
@@ -774,6 +790,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE ) packetSize = sizeof(ColumnMallocFailurePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_FREE_P4 ) packetSize = sizeof(FreeP4Packet);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT ) packetSize = sizeof(AssertFieldCountPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_ASSERT_PAGER_STATE ) packetSize = sizeof(AssertPagerStatePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_CHECK_PAGE ) packetSize = sizeof(CheckPagePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGE_IN_JOURNAL ) packetSize = sizeof(PageInJournalPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGER_FIX_MAPLIMIT ) packetSize = sizeof(PagerFixMaplimitPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

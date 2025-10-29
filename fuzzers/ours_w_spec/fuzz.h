@@ -48,6 +48,10 @@
 #define FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE 0x36  /* Target columnMallocFailure specifically */
 #define FUZZ_MODE_VDBE_FREE_P4          0x37  /* Target freeP4 specifically */
 #define FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT 0x38  /* Target vdbeAssertFieldCountWithinLimits specifically */
+#define FUZZ_MODE_ASSERT_PAGER_STATE     0x39  /* Target assert_pager_state specifically */
+#define FUZZ_MODE_CHECK_PAGE             0x3A  /* Target checkPage specifically */
+#define FUZZ_MODE_PAGE_IN_JOURNAL        0x3B  /* Target pageInJournal specifically */
+#define FUZZ_MODE_PAGER_FIX_MAPLIMIT     0x3C  /* Target pagerFixMaplimit specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -205,6 +209,58 @@ typedef struct AssertFieldCountPacket {
   uint8_t recordData[16];    /* Record content data */
 } AssertFieldCountPacket;
 
+/* Input packet for assert_pager_state fuzzing */
+typedef struct AssertPagerStatePacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t pagerState;        /* Expected pager state */
+  uint8_t lockLevel;         /* Current lock level */
+  uint8_t walEnabled;        /* WAL mode enabled */
+  uint32_t dbSize;           /* Database size */
+  uint32_t changeCounter;    /* Change counter value */
+  uint32_t cacheSpill;       /* Cache spill threshold */
+  uint32_t corruption_flags; /* Corruption pattern */
+  uint8_t testData[12];      /* Test parameters */
+} AssertPagerStatePacket;
+
+/* Input packet for checkPage fuzzing */
+typedef struct CheckPagePacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t pageType;          /* Page type selector */
+  uint8_t checkFlags;        /* Check operation flags */
+  uint8_t corruptionType;    /* Type of corruption to test */
+  uint32_t pgno;             /* Page number to check */
+  uint32_t pageSize;         /* Page size */
+  uint32_t headerOffset;     /* Header offset */
+  uint32_t checksum;         /* Page checksum */
+  uint8_t pageData[16];      /* Page content sample */
+} CheckPagePacket;
+
+/* Input packet for pageInJournal fuzzing */
+typedef struct PageInJournalPacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t journalMode;       /* Journal mode selector */
+  uint8_t syncFlags;         /* Synchronization flags */
+  uint8_t walEnabled;        /* WAL mode enabled */
+  uint32_t pgno;             /* Page number to check */
+  uint32_t journalSize;      /* Journal file size */
+  uint32_t journalOffset;    /* Offset in journal */
+  uint32_t pageSize;         /* Page size */
+  uint8_t journalData[12];   /* Journal content sample */
+} PageInJournalPacket;
+
+/* Input packet for pagerFixMaplimit fuzzing */
+typedef struct PagerFixMaplimitPacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t mmapEnabled;       /* Memory mapping enabled */
+  uint8_t sectorSize;        /* Sector size selector */
+  uint8_t lockLevel;         /* Current lock level */
+  uint32_t dbSize;           /* Database size */
+  uint32_t mmapSize;         /* Memory map size limit */
+  uint32_t pageSize;         /* Page size */
+  uint32_t cacheSize;        /* Cache size */
+  uint8_t testData[12];      /* Test parameters */
+} PagerFixMaplimitPacket;
+
 /* Core function declarations */
 int progress_handler(void *pClientData);
 int exec_handler(void *pClientData, int argc, char **argv, char **namev);
@@ -218,6 +274,7 @@ sqlite3_int64 timeOfDay(void);
 #include "btree_meta_harness.h"
 #include "btree_cursor_ops_harness.h"
 #include "vdbe_auxiliary_extended_harness.h"
+#include "storage_pager_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);
