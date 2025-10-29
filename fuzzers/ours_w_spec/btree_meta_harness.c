@@ -262,7 +262,11 @@ int fuzz_btree_update_meta(FuzzCtx *pCtx, const BtreeUpdateMetaPacket *pPacket) 
             
             /* Test operations that affect database metadata */
             sqlite3_exec(db, "PRAGMA schema_version", NULL, NULL, NULL);
-            sqlite3_exec(db, "PRAGMA user_version = " STRINGIFY(iMeta), NULL, NULL, NULL);
+            char *pragma_sql = sqlite3_mprintf("PRAGMA user_version = %u", pPacket->iMeta);
+            if( pragma_sql ) {
+                sqlite3_exec(db, pragma_sql, NULL, NULL, NULL);
+                sqlite3_free(pragma_sql);
+            }
             
             /* Test with various meta values */
             char *sql = sqlite3_mprintf("INSERT INTO metadata_ops VALUES(%u, %u)", 

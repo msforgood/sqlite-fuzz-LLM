@@ -42,6 +42,9 @@
 #define FUZZ_MODE_BTREE_BUSY_HANDLER    0x30  /* Target btreeInvokeBusyHandler specifically */
 #define FUZZ_MODE_BTREE_RESTORE_CURSOR  0x31  /* Target btreeRestoreCursorPosition specifically */
 #define FUZZ_MODE_BTREE_SHARED_CACHE_LOCK 0x32  /* Target setSharedCacheTableLock specifically */
+#define FUZZ_MODE_BTREE_MOVETO          0x33  /* Target btreeMoveto specifically */
+#define FUZZ_MODE_BTREE_OVERWRITE_CELL  0x34  /* Target btreeOverwriteCell specifically */
+#define FUZZ_MODE_BTREE_OVERWRITE_CONTENT 0x35  /* Target btreeOverwriteContent specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -138,6 +141,37 @@ typedef struct DropTablePacket {
   uint8_t testData[20];      /* Additional parameters */
 } DropTablePacket;
 
+/* Input packet for btreeMoveto fuzzing */
+typedef struct MovetoPacket {
+  uint8_t keyType;           /* Key type (0=INTEGER, 1=BLOB, 2=TEXT, 3=NULL) */
+  uint8_t bias;              /* Search bias (-1, 0, 1) */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t nKey;             /* Key size for index searches */
+  uint32_t cursorState;      /* Cursor state simulation */
+  uint8_t keyData[16];       /* Key content data */
+} MovetoPacket;
+
+/* Input packet for btreeOverwriteCell fuzzing */
+typedef struct OverwriteCellPacket {
+  uint8_t cellType;          /* Cell type (leaf/interior) */
+  uint8_t overflowMode;      /* Overflow handling mode */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t nData;            /* Data size */
+  uint32_t nZero;            /* Zero padding size */
+  uint32_t localSize;        /* Local storage size */
+  uint8_t payloadData[12];   /* Payload content */
+} OverwriteCellPacket;
+
+/* Input packet for btreeOverwriteContent fuzzing */
+typedef struct OverwriteContentPacket {
+  uint8_t writeMode;         /* Write mode (0=DATA, 1=ZERO, 2=MIXED) */
+  uint8_t alignment;         /* Memory alignment test */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t iOffset;          /* Write offset */
+  uint32_t iAmt;             /* Amount to write */
+  uint8_t contentData[16];   /* Content to write */
+} OverwriteContentPacket;
+
 /* Core function declarations */
 int progress_handler(void *pClientData);
 int exec_handler(void *pClientData, int argc, char **argv, char **namev);
@@ -149,6 +183,7 @@ sqlite3_int64 timeOfDay(void);
 /* Include harness headers */
 #include "parser_advanced_harness.h"
 #include "btree_meta_harness.h"
+#include "btree_cursor_ops_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

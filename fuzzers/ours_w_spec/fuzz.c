@@ -22,6 +22,7 @@
 #include "vdbe_memory_harness.h"
 #include "storage_pager_harness.h"
 #include "vdbe_auxiliary_harness.h"
+#include "btree_cursor_ops_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -129,11 +130,13 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(BtreeUnusedPagePacket) && size < sizeof(BtreeHeapInsertPacket) &&
       size < sizeof(BtreeHeapPullPacket) && size < sizeof(VdbeExpireStmtPacket) &&
       size < sizeof(VdbeStat4ProbePacket) && size < sizeof(VdbeValueFreePacket) &&
-      size < sizeof(VdbeEphemeralFuncPacket) ) return 0;
+      size < sizeof(VdbeEphemeralFuncPacket) &&
+      size < sizeof(MovetoPacket) && size < sizeof(OverwriteCellPacket) &&
+      size < sizeof(OverwriteContentPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 55; /* 0-54 valid modes, added B-Tree Meta harnesses */
+  cx.fuzzMode = fuzzSelector % 58; /* 0-57 valid modes, added btreeMoveto/OverwriteCell/OverwriteContent harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -225,6 +228,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pVfPacket->valueSize;
     cx.allocMode = pVfPacket->valueType;
     cx.corruptionSeed = pVfPacket->allocPattern;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_MOVETO && size >= sizeof(MovetoPacket) ) {
+    const MovetoPacket *pMvPacket = (const MovetoPacket*)data;
+    cx.targetPgno = pMvPacket->nKey;
+    cx.allocMode = pMvPacket->keyType;
+    cx.corruptionSeed = pMvPacket->cursorState;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CELL && size >= sizeof(OverwriteCellPacket) ) {
+    const OverwriteCellPacket *pOwcPacket = (const OverwriteCellPacket*)data;
+    cx.targetPgno = pOwcPacket->nData;
+    cx.allocMode = pOwcPacket->cellType;
+    cx.corruptionSeed = pOwcPacket->localSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CONTENT && size >= sizeof(OverwriteContentPacket) ) {
+    const OverwriteContentPacket *pOwCtPacket = (const OverwriteContentPacket*)data;
+    cx.targetPgno = pOwCtPacket->iOffset;
+    cx.allocMode = pOwCtPacket->writeMode;
+    cx.corruptionSeed = pOwCtPacket->iAmt;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -339,6 +357,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const VdbeAddOp4Packet*)data)->corruption_flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8) ?
     ((const VdbeAddOp4Dup8Packet*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_MOVETO) ?
+    ((const MovetoPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CELL) ?
+    ((const OverwriteCellPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CONTENT) ?
+    ((const OverwriteContentPacket*)data)->scenario & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -634,6 +658,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute B-Tree Meta Operations fuzzing */
     fuzz_btree_unlock_if_unused(&cx, pBtreePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_MOVETO && size >= sizeof(MovetoPacket) ) {
+    const MovetoPacket *pMvPacket = (const MovetoPacket*)data;
+    cx.execCnt = (pMvPacket->keyData[0] % 50) + 1;
+    
+    /* Execute B-Tree moveto fuzzing */
+    fuzz_btree_moveto(&cx, pMvPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CELL && size >= sizeof(OverwriteCellPacket) ) {
+    const OverwriteCellPacket *pOwcPacket = (const OverwriteCellPacket*)data;
+    cx.execCnt = (pOwcPacket->payloadData[0] % 50) + 1;
+    
+    /* Execute B-Tree overwrite cell fuzzing */
+    fuzz_btree_overwrite_cell(&cx, pOwcPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CONTENT && size >= sizeof(OverwriteContentPacket) ) {
+    const OverwriteContentPacket *pOwCtPacket = (const OverwriteContentPacket*)data;
+    cx.execCnt = (pOwCtPacket->contentData[0] % 50) + 1;
+    
+    /* Execute B-Tree overwrite content fuzzing */
+    fuzz_btree_overwrite_content(&cx, pOwCtPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -684,6 +726,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL ) packetSize = sizeof(VdbeAddFunctionCallPacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4 ) packetSize = sizeof(VdbeAddOp4Packet);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 ) packetSize = sizeof(VdbeAddOp4Dup8Packet);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_MOVETO ) packetSize = sizeof(MovetoPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CELL ) packetSize = sizeof(OverwriteCellPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CONTENT ) packetSize = sizeof(OverwriteContentPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
