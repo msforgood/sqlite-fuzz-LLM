@@ -599,12 +599,12 @@ sqlite3NestedParse,build.c,293,void,Parser,SQL Building,Critical,Medium,True,Fal
 sqlite3RootPageMoved,build.c,3250,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3RootPageMoved(sqlite3 *db, int iDb, Pgno iFrom, Pgno iTo){", False
 sqlite3TableLock,build.c,86,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,void sqlite3TableLock(, False
 agginfoFree,select.c,7225,void,Query,SELECT Processing,Critical,Low,False,True,SELECT Processing function in Query subsystem,"static void agginfoFree(sqlite3 *db, void *pArg){", False
-freeIdxStr,where.c,1628,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,static void freeIdxStr(sqlite3_index_info *pIdxInfo){, False
-freeIndexInfo,where.c,1640,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void freeIndexInfo(sqlite3 *db, sqlite3_index_info *pIdxInfo){", False
+freeIdxStr,where.c,1628,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,static void freeIdxStr(sqlite3_index_info *pIdxInfo){, True
+freeIndexInfo,where.c,1640,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void freeIndexInfo(sqlite3 *db, sqlite3_index_info *pIdxInfo){", True
 sqlite3VdbeCreate,select.c,2497,return,Query,SELECT Processing,Critical,Medium,True,False,SELECT Processing function in Query subsystem,return sqlite3VdbeCreate(pParse);, False
-whereInfoFree,where.c,2607,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void whereInfoFree(sqlite3 *db, WhereInfo *pWInfo){", False
+whereInfoFree,where.c,2607,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void whereInfoFree(sqlite3 *db, WhereInfo *pWInfo){", True
 whereLoopAddBtree,where.c,3908,int,Query,WHERE Clause,Critical,Medium,False,True,WHERE Clause function in Query subsystem,static int whereLoopAddBtree(, False
-whereLoopAddBtreeIndex,where.c,3125,int,Query,WHERE Clause,Critical,High,False,True,WHERE Clause function in Query subsystem,static int whereLoopAddBtreeIndex(, False
+whereLoopAddBtreeIndex,where.c,3125,int,Query,WHERE Clause,Critical,High,False,True,WHERE Clause function in Query subsystem,static int whereLoopAddBtreeIndex(, True
 assert_pager_state,pager.c,845,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int assert_pager_state(Pager *p){, True
 checkPage,pager.c,1259,void,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static void checkPage(PgHdr *pPg){, True
 getPageError,pager.c,1034,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageError(Pager*,Pgno,DbPage**,int);", False

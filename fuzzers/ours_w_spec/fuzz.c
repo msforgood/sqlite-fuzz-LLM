@@ -139,7 +139,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 65; /* 0-64 valid modes, added Storage Pager harnesses */
+  cx.fuzzMode = fuzzSelector % 69; /* 0-68 valid modes, added Query WHERE harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -281,6 +281,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pPfmPacket->dbSize;
     cx.allocMode = pPfmPacket->scenario;
     cx.corruptionSeed = pPfmPacket->mmapSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_FREE_IDX_STR && size >= sizeof(FreeIdxStrPacket) ) {
+    const FreeIdxStrPacket *pFisPacket = (const FreeIdxStrPacket*)data;
+    cx.targetPgno = pFisPacket->constraintCount;
+    cx.allocMode = pFisPacket->scenario;
+    cx.corruptionSeed = pFisPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_FREE_INDEX_INFO && size >= sizeof(FreeIndexInfoPacket) ) {
+    const FreeIndexInfoPacket *pFiiPacket = (const FreeIndexInfoPacket*)data;
+    cx.targetPgno = pFiiPacket->constraintCount;
+    cx.allocMode = pFiiPacket->scenario;
+    cx.corruptionSeed = pFiiPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_WHERE_INFO_FREE && size >= sizeof(WhereInfoFreePacket) ) {
+    const WhereInfoFreePacket *pWifPacket = (const WhereInfoFreePacket*)data;
+    cx.targetPgno = pWifPacket->loopCount;
+    cx.allocMode = pWifPacket->scenario;
+    cx.corruptionSeed = pWifPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX && size >= sizeof(WhereLoopAddBtreeIndexPacket) ) {
+    const WhereLoopAddBtreeIndexPacket *pWlabiPacket = (const WhereLoopAddBtreeIndexPacket*)data;
+    cx.targetPgno = pWlabiPacket->indexColumnCount;
+    cx.allocMode = pWlabiPacket->scenario;
+    cx.corruptionSeed = pWlabiPacket->corruption_flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -387,6 +407,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const PageInJournalPacket*)data)->syncFlags & 1 :
     (cx.fuzzMode == FUZZ_MODE_PAGER_FIX_MAPLIMIT) ?
     ((const PagerFixMaplimitPacket*)data)->mmapEnabled & 1 :
+    (cx.fuzzMode == FUZZ_MODE_FREE_IDX_STR) ?
+    ((const FreeIdxStrPacket*)data)->needToFreeFlag & 1 :
+    (cx.fuzzMode == FUZZ_MODE_FREE_INDEX_INFO) ?
+    ((const FreeIndexInfoPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_WHERE_INFO_FREE) ?
+    ((const WhereInfoFreePacket*)data)->sortedFlag & 1 :
+    (cx.fuzzMode == FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX) ?
+    ((const WhereLoopAddBtreeIndexPacket*)data)->whereFlags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT) ?
     ((const VdbeCheckActiveCntPacket*)data)->corruption_flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL) ?
@@ -738,6 +766,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute pager fix maplimit fuzzing */
     fuzz_pager_fix_maplimit(&cx, pPfmPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_FREE_IDX_STR && size >= sizeof(FreeIdxStrPacket) ) {
+    const FreeIdxStrPacket *pFisPacket = (const FreeIdxStrPacket*)data;
+    cx.execCnt = (pFisPacket->testData[0] % 50) + 1;
+    
+    /* Execute free index string fuzzing */
+    fuzz_free_idx_str(&cx, pFisPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_FREE_INDEX_INFO && size >= sizeof(FreeIndexInfoPacket) ) {
+    const FreeIndexInfoPacket *pFiiPacket = (const FreeIndexInfoPacket*)data;
+    cx.execCnt = (pFiiPacket->constraintData[0] % 50) + 1;
+    
+    /* Execute free index info fuzzing */
+    fuzz_free_index_info(&cx, pFiiPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_WHERE_INFO_FREE && size >= sizeof(WhereInfoFreePacket) ) {
+    const WhereInfoFreePacket *pWifPacket = (const WhereInfoFreePacket*)data;
+    cx.execCnt = (pWifPacket->whereData[0] % 50) + 1;
+    
+    /* Execute WHERE info free fuzzing */
+    fuzz_where_info_free(&cx, pWifPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX && size >= sizeof(WhereLoopAddBtreeIndexPacket) ) {
+    const WhereLoopAddBtreeIndexPacket *pWlabiPacket = (const WhereLoopAddBtreeIndexPacket*)data;
+    cx.execCnt = (pWlabiPacket->indexData[0] % 50) + 1;
+    
+    /* Execute WHERE loop add B-Tree index fuzzing */
+    fuzz_where_loop_add_btree_index(&cx, pWlabiPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -794,6 +846,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_CHECK_PAGE ) packetSize = sizeof(CheckPagePacket);
   else if( cx.fuzzMode == FUZZ_MODE_PAGE_IN_JOURNAL ) packetSize = sizeof(PageInJournalPacket);
   else if( cx.fuzzMode == FUZZ_MODE_PAGER_FIX_MAPLIMIT ) packetSize = sizeof(PagerFixMaplimitPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_FREE_IDX_STR ) packetSize = sizeof(FreeIdxStrPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_FREE_INDEX_INFO ) packetSize = sizeof(FreeIndexInfoPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_WHERE_INFO_FREE ) packetSize = sizeof(WhereInfoFreePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX ) packetSize = sizeof(WhereLoopAddBtreeIndexPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

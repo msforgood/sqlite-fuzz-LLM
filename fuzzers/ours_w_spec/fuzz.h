@@ -52,6 +52,10 @@
 #define FUZZ_MODE_CHECK_PAGE             0x3A  /* Target checkPage specifically */
 #define FUZZ_MODE_PAGE_IN_JOURNAL        0x3B  /* Target pageInJournal specifically */
 #define FUZZ_MODE_PAGER_FIX_MAPLIMIT     0x3C  /* Target pagerFixMaplimit specifically */
+#define FUZZ_MODE_FREE_IDX_STR           0x3D  /* Target freeIdxStr specifically */
+#define FUZZ_MODE_FREE_INDEX_INFO        0x3E  /* Target freeIndexInfo specifically */
+#define FUZZ_MODE_WHERE_INFO_FREE        0x3F  /* Target whereInfoFree specifically */
+#define FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX 0x40  /* Target whereLoopAddBtreeIndex specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -275,6 +279,7 @@ sqlite3_int64 timeOfDay(void);
 #include "btree_cursor_ops_harness.h"
 #include "vdbe_auxiliary_extended_harness.h"
 #include "storage_pager_harness.h"
+#include "query_where_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);
