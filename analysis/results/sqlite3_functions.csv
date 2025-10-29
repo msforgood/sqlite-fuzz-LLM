@@ -949,10 +949,10 @@ vdbeFreeUnpacked,vdbeaux.c,5473,void,VDBE,Auxiliary Functions,Critical,Medium,Fa
 vdbeInvokeSqllog,vdbeaux.c,3555,void,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static void vdbeInvokeSqllog(Vdbe *v){, False
 vdbeMemAddTerminator,vdbemem.c,440,return,VDBE,Memory Operations,Critical,Medium,False,False,Memory Operations function in VDBE subsystem,return vdbeMemAddTerminator(pMem);, False
 vdbeMemRenderNum,vdbemem.c,106,void,VDBE,Memory Operations,Critical,Medium,False,True,Memory Operations function in VDBE subsystem,"static void vdbeMemRenderNum(int sz, char *zBuf, Mem *p){", False
-vdbeRecordCompareDebug,vdbeaux.c,4295,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareDebug(, False
-vdbeRecordCompareInt,vdbeaux.c,4967,int,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareInt(, False
-vdbeRecordCompareString,vdbeaux.c,5062,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareString(, False
-vdbeRecordDecodeInt,vdbeaux.c,4674,i64,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,"static i64 vdbeRecordDecodeInt(u32 serial_type, const u8 *aKey){", False
+vdbeRecordCompareDebug,vdbeaux.c,4295,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareDebug(, True
+vdbeRecordCompareInt,vdbeaux.c,4967,int,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareInt(, True
+vdbeRecordCompareString,vdbeaux.c,5062,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareString(, True
+vdbeRecordDecodeInt,vdbeaux.c,4674,i64,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,"static i64 vdbeRecordDecodeInt(u32 serial_type, const u8 *aKey){", True
 vdbeSafety,vdbeapi.c,40,int,VDBE,API Interface,Critical,Low,False,True,API Interface function in VDBE subsystem,static int vdbeSafety(Vdbe *p){, False
 vdbeSafety,vdbeapi.c,53,return,VDBE,API Interface,Critical,Low,False,False,API Interface function in VDBE subsystem,return vdbeSafety(p);, False
 vdbeSafetyNotNull,vdbeapi.c,48,int,VDBE,API Interface,Critical,Medium,False,True,API Interface function in VDBE subsystem,static int vdbeSafetyNotNull(Vdbe *p){, False

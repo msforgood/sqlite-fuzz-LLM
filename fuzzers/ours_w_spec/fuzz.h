@@ -56,6 +56,10 @@
 #define FUZZ_MODE_FREE_INDEX_INFO        0x3E  /* Target freeIndexInfo specifically */
 #define FUZZ_MODE_WHERE_INFO_FREE        0x3F  /* Target whereInfoFree specifically */
 #define FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX 0x40  /* Target whereLoopAddBtreeIndex specifically */
+#define FUZZ_MODE_VDBE_RECORD_COMPARE_DEBUG 0x41  /* Target vdbeRecordCompareDebug specifically */
+#define FUZZ_MODE_VDBE_RECORD_COMPARE_STRING 0x42  /* Target vdbeRecordCompareString specifically */
+#define FUZZ_MODE_VDBE_RECORD_COMPARE_INT 0x43  /* Target vdbeRecordCompareInt specifically */
+#define FUZZ_MODE_VDBE_RECORD_DECODE_INT 0x44  /* Target vdbeRecordDecodeInt specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -280,6 +284,7 @@ sqlite3_int64 timeOfDay(void);
 #include "vdbe_auxiliary_extended_harness.h"
 #include "storage_pager_harness.h"
 #include "query_where_harness.h"
+#include "vdbe_record_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

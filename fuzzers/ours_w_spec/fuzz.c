@@ -139,7 +139,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 69; /* 0-68 valid modes, added Query WHERE harnesses */
+  cx.fuzzMode = fuzzSelector % 73; /* 0-72 valid modes, added VDBE Record harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -301,6 +301,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pWlabiPacket->indexColumnCount;
     cx.allocMode = pWlabiPacket->scenario;
     cx.corruptionSeed = pWlabiPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_DEBUG && size >= sizeof(RecordCompareDebugPacket) ) {
+    const RecordCompareDebugPacket *pRcdPacket = (const RecordCompareDebugPacket*)data;
+    cx.targetPgno = pRcdPacket->nKey1;
+    cx.allocMode = pRcdPacket->scenario;
+    cx.corruptionSeed = pRcdPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_STRING && size >= sizeof(RecordCompareStringPacket) ) {
+    const RecordCompareStringPacket *pRcsPacket = (const RecordCompareStringPacket*)data;
+    cx.targetPgno = pRcsPacket->nKey1;
+    cx.allocMode = pRcsPacket->scenario;
+    cx.corruptionSeed = pRcsPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_INT && size >= sizeof(RecordCompareIntPacket) ) {
+    const RecordCompareIntPacket *pRciPacket = (const RecordCompareIntPacket*)data;
+    cx.targetPgno = pRciPacket->nKey1;
+    cx.allocMode = pRciPacket->scenario;
+    cx.corruptionSeed = pRciPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_DECODE_INT && size >= sizeof(RecordDecodeIntPacket) ) {
+    const RecordDecodeIntPacket *pRdiPacket = (const RecordDecodeIntPacket*)data;
+    cx.targetPgno = pRdiPacket->serialType;
+    cx.allocMode = pRdiPacket->scenario;
+    cx.corruptionSeed = pRdiPacket->corruption_flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -790,6 +810,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute WHERE loop add B-Tree index fuzzing */
     fuzz_where_loop_add_btree_index(&cx, pWlabiPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_DEBUG && size >= sizeof(RecordCompareDebugPacket) ) {
+    const RecordCompareDebugPacket *pRcdPacket = (const RecordCompareDebugPacket*)data;
+    cx.execCnt = (pRcdPacket->keyData[0] % 50) + 1;
+    
+    /* Execute VDBE record compare debug fuzzing */
+    fuzz_vdbe_record_compare_debug(&cx, pRcdPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_STRING && size >= sizeof(RecordCompareStringPacket) ) {
+    const RecordCompareStringPacket *pRcsPacket = (const RecordCompareStringPacket*)data;
+    cx.execCnt = (pRcsPacket->stringData[0] % 50) + 1;
+    
+    /* Execute VDBE record compare string fuzzing */
+    fuzz_vdbe_record_compare_string(&cx, pRcsPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_INT && size >= sizeof(RecordCompareIntPacket) ) {
+    const RecordCompareIntPacket *pRciPacket = (const RecordCompareIntPacket*)data;
+    cx.execCnt = (pRciPacket->intData[0] % 50) + 1;
+    
+    /* Execute VDBE record compare int fuzzing */
+    fuzz_vdbe_record_compare_int(&cx, pRciPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_DECODE_INT && size >= sizeof(RecordDecodeIntPacket) ) {
+    const RecordDecodeIntPacket *pRdiPacket = (const RecordDecodeIntPacket*)data;
+    cx.execCnt = (pRdiPacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE record decode int fuzzing */
+    fuzz_vdbe_record_decode_int(&cx, pRdiPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
