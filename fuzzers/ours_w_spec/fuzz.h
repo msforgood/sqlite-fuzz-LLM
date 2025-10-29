@@ -148,6 +148,7 @@ sqlite3_int64 timeOfDay(void);
 
 /* Include harness headers */
 #include "parser_advanced_harness.h"
+#include "btree_meta_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

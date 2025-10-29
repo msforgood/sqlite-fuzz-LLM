@@ -133,7 +133,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 51; /* 0-50 valid modes, added Parser Advanced harnesses */
+  cx.fuzzMode = fuzzSelector % 55; /* 0-54 valid modes, added B-Tree Meta harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -610,6 +610,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute Parser Advanced Operations fuzzing */
     fuzz_parser_free_index(&cx, pParserPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_TRANSFER_ROW && size >= sizeof(BtreeTransferRowPacket) ) {
+    const BtreeTransferRowPacket *pBtreePacket = (const BtreeTransferRowPacket*)data;
+    cx.execCnt = (pBtreePacket->scenario % 50) + 1;
+    
+    /* Execute B-Tree Meta Operations fuzzing */
+    fuzz_btree_transfer_row(&cx, pBtreePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_TRIP_ALL_CURSORS && size >= sizeof(BtreeTripAllCursorsPacket) ) {
+    const BtreeTripAllCursorsPacket *pBtreePacket = (const BtreeTripAllCursorsPacket*)data;
+    cx.execCnt = (pBtreePacket->scenario % 50) + 1;
+    
+    /* Execute B-Tree Meta Operations fuzzing */
+    fuzz_btree_trip_all_cursors(&cx, pBtreePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_UPDATE_META && size >= sizeof(BtreeUpdateMetaPacket) ) {
+    const BtreeUpdateMetaPacket *pBtreePacket = (const BtreeUpdateMetaPacket*)data;
+    cx.execCnt = (pBtreePacket->scenario % 50) + 1;
+    
+    /* Execute B-Tree Meta Operations fuzzing */
+    fuzz_btree_update_meta(&cx, pBtreePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_UNLOCK_IF_UNUSED && size >= sizeof(BtreeUnlockIfUnusedPacket) ) {
+    const BtreeUnlockIfUnusedPacket *pBtreePacket = (const BtreeUnlockIfUnusedPacket*)data;
+    cx.execCnt = (pBtreePacket->scenario % 50) + 1;
+    
+    /* Execute B-Tree Meta Operations fuzzing */
+    fuzz_btree_unlock_if_unused(&cx, pBtreePacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
