@@ -32,6 +32,10 @@
 #define FUZZ_MODE_CLEAR_PAGE     0x11  /* Target clearDatabasePage specifically */
 #define FUZZ_MODE_DEFRAG_PAGE    0x12  /* Target defragmentPage specifically */
 #define FUZZ_MODE_CLOSE_CURSOR   0x13  /* Target sqlite3BtreeCloseCursor specifically */
+#define FUZZ_MODE_DELETE_AUXDATA  0x14  /* Target sqlite3VdbeDeleteAuxData specifically */
+#define FUZZ_MODE_SET_NUMCOLS     0x15  /* Target sqlite3VdbeSetNumCols specifically */
+#define FUZZ_MODE_MEM_WRITEABLE   0x16  /* Target sqlite3VdbeMemMakeWriteable specifically */
+#define FUZZ_MODE_VALUE_FREE      0x17  /* Target sqlite3_value_free specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

@@ -15,6 +15,7 @@
 #include "cursor_harness.h"
 #include "drop_table_harness.h"
 #include "page_ops_harness.h"
+#include "vdbe_ops_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -114,11 +115,13 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(CellCheckPacket) && size < sizeof(CreateTablePacket) &&
       size < sizeof(CursorPacket) && size < sizeof(DropTablePacket) &&
       size < sizeof(FreePagePacket) && size < sizeof(ClearPagePacket) &&
-      size < sizeof(DefragPagePacket) && size < sizeof(CloseCursorPacket) ) return 0;
+      size < sizeof(DefragPagePacket) && size < sizeof(CloseCursorPacket) &&
+      size < sizeof(DeleteAuxDataPacket) && size < sizeof(SetNumColsPacket) &&
+      size < sizeof(MemWriteablePacket) && size < sizeof(ValueFreePacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 20; /* 0-19 valid modes, added page operations harnesses */
+  cx.fuzzMode = fuzzSelector % 24; /* 0-23 valid modes, added VDBE operations harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -190,6 +193,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pCcPacket->rootPage;
     cx.allocMode = pCcPacket->cursorState;
     cx.corruptionSeed = pCcPacket->overflowPages;
+  } else if( cx.fuzzMode == FUZZ_MODE_DELETE_AUXDATA && size >= sizeof(DeleteAuxDataPacket) ) {
+    const DeleteAuxDataPacket *pDaPacket = (const DeleteAuxDataPacket*)data;
+    cx.targetPgno = pDaPacket->opIndex;
+    cx.allocMode = pDaPacket->deletionMode;
+    cx.corruptionSeed = pDaPacket->corruptionSeed;
+  } else if( cx.fuzzMode == FUZZ_MODE_SET_NUMCOLS && size >= sizeof(SetNumColsPacket) ) {
+    const SetNumColsPacket *pSnPacket = (const SetNumColsPacket*)data;
+    cx.targetPgno = pSnPacket->numCols;
+    cx.allocMode = pSnPacket->encoding;
+    cx.corruptionSeed = pSnPacket->namePattern;
+  } else if( cx.fuzzMode == FUZZ_MODE_MEM_WRITEABLE && size >= sizeof(MemWriteablePacket) ) {
+    const MemWriteablePacket *pMwPacket = (const MemWriteablePacket*)data;
+    cx.targetPgno = pMwPacket->memSize;
+    cx.allocMode = pMwPacket->memFlags;
+    cx.corruptionSeed = pMwPacket->corruptionMask;
+  } else if( cx.fuzzMode == FUZZ_MODE_VALUE_FREE && size >= sizeof(ValueFreePacket) ) {
+    const ValueFreePacket *pVfPacket = (const ValueFreePacket*)data;
+    cx.targetPgno = pVfPacket->valueSize;
+    cx.allocMode = pVfPacket->valueType;
+    cx.corruptionSeed = pVfPacket->allocPattern;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -250,6 +273,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const DefragPagePacket*)data)->fragmentation & 1 :
     (cx.fuzzMode == FUZZ_MODE_CLOSE_CURSOR) ?
     ((const CloseCursorPacket*)data)->cursorState & 1 :
+    (cx.fuzzMode == FUZZ_MODE_DELETE_AUXDATA) ?
+    ((const DeleteAuxDataPacket*)data)->deletionMode & 1 :
+    (cx.fuzzMode == FUZZ_MODE_SET_NUMCOLS) ?
+    ((const SetNumColsPacket*)data)->encoding & 1 :
+    (cx.fuzzMode == FUZZ_MODE_MEM_WRITEABLE) ?
+    ((const MemWriteablePacket*)data)->memFlags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VALUE_FREE) ?
+    ((const ValueFreePacket*)data)->valueType & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -335,6 +366,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute close cursor fuzzing */
     fuzz_close_cursor(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_DELETE_AUXDATA && size >= sizeof(DeleteAuxDataPacket) ) {
+    const DeleteAuxDataPacket *pDaPacket = (const DeleteAuxDataPacket*)data;
+    cx.execCnt = (pDaPacket->testData[0] % 50) + 1;
+    
+    /* Execute delete auxiliary data fuzzing */
+    fuzz_delete_auxdata(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SET_NUMCOLS && size >= sizeof(SetNumColsPacket) ) {
+    const SetNumColsPacket *pSnPacket = (const SetNumColsPacket*)data;
+    cx.execCnt = (pSnPacket->testData[0] % 50) + 1;
+    
+    /* Execute set number of columns fuzzing */
+    fuzz_set_numcols(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_MEM_WRITEABLE && size >= sizeof(MemWriteablePacket) ) {
+    const MemWriteablePacket *pMwPacket = (const MemWriteablePacket*)data;
+    cx.execCnt = (pMwPacket->testData[0] % 50) + 1;
+    
+    /* Execute memory make writeable fuzzing */
+    fuzz_mem_writeable(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_VALUE_FREE && size >= sizeof(ValueFreePacket) ) {
+    const ValueFreePacket *pVfPacket = (const ValueFreePacket*)data;
+    cx.execCnt = (pVfPacket->testData[0] % 50) + 1;
+    
+    /* Execute value free fuzzing */
+    fuzz_value_free(data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -358,6 +413,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_CLEAR_PAGE ) packetSize = sizeof(ClearPagePacket);
   else if( cx.fuzzMode == FUZZ_MODE_DEFRAG_PAGE ) packetSize = sizeof(DefragPagePacket);
   else if( cx.fuzzMode == FUZZ_MODE_CLOSE_CURSOR ) packetSize = sizeof(CloseCursorPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_DELETE_AUXDATA ) packetSize = sizeof(DeleteAuxDataPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SET_NUMCOLS ) packetSize = sizeof(SetNumColsPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_MEM_WRITEABLE ) packetSize = sizeof(MemWriteablePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VALUE_FREE ) packetSize = sizeof(ValueFreePacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
