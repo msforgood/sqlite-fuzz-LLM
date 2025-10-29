@@ -19,6 +19,7 @@
 #include "parser_harness.h"
 #include "btree_advanced_harness.h"
 #include "btree_extended_harness.h"
+#include "vdbe_memory_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -124,11 +125,13 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(ParserFuzzHeader) && size < sizeof(BtreeAdvancedFuzzHeader) &&
       size < sizeof(BtreeTransEndPacket) && size < sizeof(BtreeGetPagePacket) &&
       size < sizeof(BtreeUnusedPagePacket) && size < sizeof(BtreeHeapInsertPacket) &&
-      size < sizeof(BtreeHeapPullPacket) ) return 0;
+      size < sizeof(BtreeHeapPullPacket) && size < sizeof(VdbeExpireStmtPacket) &&
+      size < sizeof(VdbeStat4ProbePacket) && size < sizeof(VdbeValueFreePacket) &&
+      size < sizeof(VdbeEphemeralFuncPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 35; /* 0-34 valid modes, added extended B-Tree harnesses */
+  cx.fuzzMode = fuzzSelector % 39; /* 0-38 valid modes, added VDBE memory harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -310,6 +313,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const BtreeHeapInsertPacket*)data)->flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_PULL) ?
     ((const BtreeHeapPullPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_EXPIRE_STMT) ?
+    ((const VdbeExpireStmtPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_STAT4_PROBE) ?
+    ((const VdbeStat4ProbePacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_VALUE_FREE) ?
+    ((const VdbeValueFreePacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC) ?
+    ((const VdbeEphemeralFuncPacket*)data)->flags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -485,6 +496,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute extended B-Tree heap pull fuzzing */
     fuzz_btree_heap_pull(&cx, pExtHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_EXPIRE_STMT && size >= sizeof(VdbeExpireStmtPacket) ) {
+    const VdbeExpireStmtPacket *pVdbeHeader = (const VdbeExpireStmtPacket*)data;
+    cx.execCnt = (pVdbeHeader->flags % 50) + 1;
+    
+    /* Execute VDBE expire statements fuzzing */
+    fuzz_vdbe_expire_statements(&cx, pVdbeHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_STAT4_PROBE && size >= sizeof(VdbeStat4ProbePacket) ) {
+    const VdbeStat4ProbePacket *pVdbeHeader = (const VdbeStat4ProbePacket*)data;
+    cx.execCnt = (pVdbeHeader->flags % 50) + 1;
+    
+    /* Execute VDBE STAT4 probe fuzzing */
+    fuzz_vdbe_stat4_probe_free(&cx, pVdbeHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_VALUE_FREE && size >= sizeof(VdbeValueFreePacket) ) {
+    const VdbeValueFreePacket *pVdbeHeader = (const VdbeValueFreePacket*)data;
+    cx.execCnt = (pVdbeHeader->flags % 50) + 1;
+    
+    /* Execute VDBE value free fuzzing */
+    fuzz_vdbe_value_free(&cx, pVdbeHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC && size >= sizeof(VdbeEphemeralFuncPacket) ) {
+    const VdbeEphemeralFuncPacket *pVdbeHeader = (const VdbeEphemeralFuncPacket*)data;
+    cx.execCnt = (pVdbeHeader->flags % 50) + 1;
+    
+    /* Execute VDBE ephemeral function fuzzing */
+    fuzz_vdbe_ephemeral_function(&cx, pVdbeHeader);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -523,6 +558,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_UNUSED_PAGE ) packetSize = sizeof(BtreeUnusedPagePacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_INSERT ) packetSize = sizeof(BtreeHeapInsertPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_PULL ) packetSize = sizeof(BtreeHeapPullPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_EXPIRE_STMT ) packetSize = sizeof(VdbeExpireStmtPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_STAT4_PROBE ) packetSize = sizeof(VdbeStat4ProbePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_VALUE_FREE ) packetSize = sizeof(VdbeValueFreePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC ) packetSize = sizeof(VdbeEphemeralFuncPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
