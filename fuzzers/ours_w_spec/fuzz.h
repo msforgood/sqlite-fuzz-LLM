@@ -22,11 +22,12 @@
 #define FUZZ_MODE_AUTOVACUUM     0x06  /* Target autoVacuumCommit specifically */
 #define FUZZ_MODE_FREESPACE      0x07  /* Target btreeComputeFreeSpace specifically */
 #define FUZZ_MODE_PAGEMANAGEMENT 0x08  /* Target page management functions */
-#define FUZZ_MODE_BTREE_TRANS    0x09  /* Target btreeBeginTrans */
-#define FUZZ_MODE_CELL_CHECK     0x0A  /* Target btreeCellSizeCheck */
-#define FUZZ_MODE_CREATE_TABLE   0x0B  /* Target btreeCreateTable */
-#define FUZZ_MODE_CURSOR         0x0C  /* Target btreeCursor */
-#define FUZZ_MODE_DROP_TABLE     0x0D  /* Target btreeDropTable */
+#define FUZZ_MODE_TABLECURSOR    0x09  /* Target table/cursor management functions */
+#define FUZZ_MODE_BTREE_TRANS    0x0A  /* Target btreeBeginTrans */
+#define FUZZ_MODE_CELL_CHECK     0x0B  /* Target btreeCellSizeCheck */
+#define FUZZ_MODE_CREATE_TABLE   0x0C  /* Target btreeCreateTable */
+#define FUZZ_MODE_CURSOR         0x0D  /* Target btreeCursor */
+#define FUZZ_MODE_DROP_TABLE     0x0E  /* Target btreeDropTable */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
