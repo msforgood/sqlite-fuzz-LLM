@@ -133,7 +133,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 47; /* 0-46 valid modes, added VDBE Auxiliary harnesses */
+  cx.fuzzMode = fuzzSelector % 51; /* 0-50 valid modes, added Parser Advanced harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -586,6 +586,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE add op4 dup8 fuzzing */
     fuzz_vdbe_add_op4_dup8(&cx, pVdbePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PARSER_VERIFY_NAMED_SCHEMA && size >= sizeof(ParserVerifyNamedSchemaPacket) ) {
+    const ParserVerifyNamedSchemaPacket *pParserPacket = (const ParserVerifyNamedSchemaPacket*)data;
+    cx.execCnt = (pParserPacket->scenario % 50) + 1;
+    
+    /* Execute Parser Advanced Operations fuzzing */
+    fuzz_parser_verify_named_schema(&cx, pParserPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PARSER_VERIFY_SCHEMA_TOPLEVEL && size >= sizeof(ParserVerifyToplevelPacket) ) {
+    const ParserVerifyToplevelPacket *pParserPacket = (const ParserVerifyToplevelPacket*)data;
+    cx.execCnt = (pParserPacket->scenario % 50) + 1;
+    
+    /* Execute Parser Advanced Operations fuzzing */
+    fuzz_parser_verify_schema_toplevel(&cx, pParserPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PARSER_COMMIT_INTERNAL_CHANGES && size >= sizeof(ParserCommitChangesPacket) ) {
+    const ParserCommitChangesPacket *pParserPacket = (const ParserCommitChangesPacket*)data;
+    cx.execCnt = (pParserPacket->scenario % 50) + 1;
+    
+    /* Execute Parser Advanced Operations fuzzing */
+    fuzz_parser_commit_internal_changes(&cx, pParserPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PARSER_FREE_INDEX && size >= sizeof(ParserFreeIndexPacket) ) {
+    const ParserFreeIndexPacket *pParserPacket = (const ParserFreeIndexPacket*)data;
+    cx.execCnt = (pParserPacket->scenario % 50) + 1;
+    
+    /* Execute Parser Advanced Operations fuzzing */
+    fuzz_parser_free_index(&cx, pParserPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;

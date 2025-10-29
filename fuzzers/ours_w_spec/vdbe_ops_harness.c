@@ -273,7 +273,7 @@ int fuzz_value_free(const uint8_t *data, size_t size) {
             break;
         case 3: /* TEXT value */
             sql = sqlite3_mprintf("INSERT INTO t1 VALUES('%.*s_%u')", 
-                                 (int)(packet->valueSize & 0xFF), packet->testData, packet->allocPattern);
+                                 (int)((packet->valueSize & 0xFF) > 16 ? 16 : (packet->valueSize & 0xFF)), packet->testData, packet->allocPattern);
             break;
         case 4: /* BLOB value */
             sql = "INSERT INTO t1 VALUES(?)";

@@ -146,6 +146,9 @@ int block_debug_pragmas(void *Notused, int eCode, const char *zArg1,
 sqlite3_int64 timeOfDay(void);
 
 
+/* Include harness headers */
+#include "parser_advanced_harness.h"
+
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);
 
