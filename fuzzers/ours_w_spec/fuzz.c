@@ -21,6 +21,7 @@
 #include "btree_extended_harness.h"
 #include "vdbe_memory_harness.h"
 #include "storage_pager_harness.h"
+#include "vdbe_auxiliary_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -132,7 +133,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 43; /* 0-42 valid modes, added Storage Pager harnesses */
+  cx.fuzzMode = fuzzSelector % 47; /* 0-46 valid modes, added VDBE Auxiliary harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -330,6 +331,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const PagerExclusiveLockPacket*)data)->corruption_flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL) ?
     ((const GetPageNormalPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT) ?
+    ((const VdbeCheckActiveCntPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL) ?
+    ((const VdbeAddFunctionCallPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4) ?
+    ((const VdbeAddOp4Packet*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8) ?
+    ((const VdbeAddOp4Dup8Packet*)data)->corruption_flags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -553,6 +562,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute Storage Pager get page normal fuzzing */
     fuzz_get_page_normal(&cx, pPagerPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT && size >= sizeof(VdbeCheckActiveCntPacket) ) {
+    const VdbeCheckActiveCntPacket *pVdbePacket = (const VdbeCheckActiveCntPacket*)data;
+    cx.execCnt = (pVdbePacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE check active count fuzzing */
+    fuzz_vdbe_check_active_cnt(&cx, pVdbePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL && size >= sizeof(VdbeAddFunctionCallPacket) ) {
+    const VdbeAddFunctionCallPacket *pVdbePacket = (const VdbeAddFunctionCallPacket*)data;
+    cx.execCnt = (pVdbePacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE add function call fuzzing */
+    fuzz_vdbe_add_function_call(&cx, pVdbePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4 && size >= sizeof(VdbeAddOp4Packet) ) {
+    const VdbeAddOp4Packet *pVdbePacket = (const VdbeAddOp4Packet*)data;
+    cx.execCnt = (pVdbePacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE add op4 fuzzing */
+    fuzz_vdbe_add_op4(&cx, pVdbePacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 && size >= sizeof(VdbeAddOp4Dup8Packet) ) {
+    const VdbeAddOp4Dup8Packet *pVdbePacket = (const VdbeAddOp4Dup8Packet*)data;
+    cx.execCnt = (pVdbePacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE add op4 dup8 fuzzing */
+    fuzz_vdbe_add_op4_dup8(&cx, pVdbePacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -599,6 +632,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN ) packetSize = sizeof(PagerBeginReadTxnPacket);
   else if( cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK ) packetSize = sizeof(PagerExclusiveLockPacket);
   else if( cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL ) packetSize = sizeof(GetPageNormalPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT ) packetSize = sizeof(VdbeCheckActiveCntPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL ) packetSize = sizeof(VdbeAddFunctionCallPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4 ) packetSize = sizeof(VdbeAddOp4Packet);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 ) packetSize = sizeof(VdbeAddOp4Dup8Packet);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
