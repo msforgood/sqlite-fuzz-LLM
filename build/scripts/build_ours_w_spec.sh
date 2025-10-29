@@ -100,8 +100,11 @@ if [[ ! -x "$OUT_BIN" || "${FORCE_BUILD:-0}" = "1" ]]; then
   echo "Compiling btree_advanced_harness.c..."
   $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/btree_advanced_harness.c" -o "$OBJ_DIR/btree_advanced_harness.o"
 
+  echo "Compiling btree_extended_harness.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/btree_extended_harness.c" -o "$OBJ_DIR/btree_extended_harness.o"
+
   echo "Linking $OUT_BIN with libFuzzer..."
-  $CXX $COV_FLAGS $FUZZ_FLAGS "$OBJ_DIR/sqlite3.o" "$OBJ_DIR/fuzz.o" "$OBJ_DIR/btree_harness.o" "$OBJ_DIR/autovacuum_harness.o" "$OBJ_DIR/freespace_harness.o" "$OBJ_DIR/pagemanagement_harness.o" "$OBJ_DIR/tablecursor_harness.o" "$OBJ_DIR/btree_trans_harness.o" "$OBJ_DIR/cell_check_harness.o" "$OBJ_DIR/create_table_harness.o" "$OBJ_DIR/cursor_harness.o" "$OBJ_DIR/drop_table_harness.o" "$OBJ_DIR/page_ops_harness.o" "$OBJ_DIR/vdbe_ops_harness.o" "$OBJ_DIR/parser_harness.o" "$OBJ_DIR/btree_advanced_harness.o" $LDLIBS -o "$OUT_BIN"
+  $CXX $COV_FLAGS $FUZZ_FLAGS "$OBJ_DIR/sqlite3.o" "$OBJ_DIR/fuzz.o" "$OBJ_DIR/btree_harness.o" "$OBJ_DIR/autovacuum_harness.o" "$OBJ_DIR/freespace_harness.o" "$OBJ_DIR/pagemanagement_harness.o" "$OBJ_DIR/tablecursor_harness.o" "$OBJ_DIR/btree_trans_harness.o" "$OBJ_DIR/cell_check_harness.o" "$OBJ_DIR/create_table_harness.o" "$OBJ_DIR/cursor_harness.o" "$OBJ_DIR/drop_table_harness.o" "$OBJ_DIR/page_ops_harness.o" "$OBJ_DIR/vdbe_ops_harness.o" "$OBJ_DIR/parser_harness.o" "$OBJ_DIR/btree_advanced_harness.o" "$OBJ_DIR/btree_extended_harness.o" $LDLIBS -o "$OUT_BIN"
   chmod +x "$OUT_BIN"
 else
   echo "Found existing binary: $OUT_BIN (skipping build)"

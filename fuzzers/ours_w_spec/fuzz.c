@@ -18,6 +18,7 @@
 #include "vdbe_ops_harness.h"
 #include "parser_harness.h"
 #include "btree_advanced_harness.h"
+#include "btree_extended_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -120,11 +121,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(DefragPagePacket) && size < sizeof(CloseCursorPacket) &&
       size < sizeof(DeleteAuxDataPacket) && size < sizeof(SetNumColsPacket) &&
       size < sizeof(MemWriteablePacket) && size < sizeof(ValueFreePacket) &&
-      size < sizeof(ParserFuzzHeader) && size < sizeof(BtreeAdvancedFuzzHeader) ) return 0;
+      size < sizeof(ParserFuzzHeader) && size < sizeof(BtreeAdvancedFuzzHeader) &&
+      size < sizeof(BtreeTransEndPacket) && size < sizeof(BtreeGetPagePacket) &&
+      size < sizeof(BtreeUnusedPagePacket) && size < sizeof(BtreeHeapInsertPacket) &&
+      size < sizeof(BtreeHeapPullPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 30; /* 0-29 valid modes, added advanced B-Tree harnesses */
+  cx.fuzzMode = fuzzSelector % 35; /* 0-34 valid modes, added extended B-Tree harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -296,6 +300,16 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const BtreeAdvancedFuzzHeader*)data)->flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_BTREE_SHARED_CACHE_LOCK) ?
     ((const BtreeAdvancedFuzzHeader*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_END_TRANS) ?
+    ((const BtreeTransEndPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_GET_PAGE) ?
+    ((const BtreeGetPagePacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_UNUSED_PAGE) ?
+    ((const BtreeUnusedPagePacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_INSERT) ?
+    ((const BtreeHeapInsertPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_PULL) ?
+    ((const BtreeHeapPullPacket*)data)->flags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -441,6 +455,36 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute advanced B-Tree shared cache lock fuzzing */
     fuzz_setSharedCacheTableLock(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_END_TRANS && size >= sizeof(BtreeTransEndPacket) ) {
+    const BtreeTransEndPacket *pExtHeader = (const BtreeTransEndPacket*)data;
+    cx.execCnt = (pExtHeader->flags % 50) + 1;
+    
+    /* Execute extended B-Tree end transaction fuzzing */
+    fuzz_btree_end_transaction(&cx, pExtHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_GET_PAGE && size >= sizeof(BtreeGetPagePacket) ) {
+    const BtreeGetPagePacket *pExtHeader = (const BtreeGetPagePacket*)data;
+    cx.execCnt = (pExtHeader->flags % 50) + 1;
+    
+    /* Execute extended B-Tree get page fuzzing */
+    fuzz_btree_get_page(&cx, pExtHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_UNUSED_PAGE && size >= sizeof(BtreeUnusedPagePacket) ) {
+    const BtreeUnusedPagePacket *pExtHeader = (const BtreeUnusedPagePacket*)data;
+    cx.execCnt = (pExtHeader->flags % 50) + 1;
+    
+    /* Execute extended B-Tree unused page fuzzing */
+    fuzz_btree_get_unused_page(&cx, pExtHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_INSERT && size >= sizeof(BtreeHeapInsertPacket) ) {
+    const BtreeHeapInsertPacket *pExtHeader = (const BtreeHeapInsertPacket*)data;
+    cx.execCnt = (pExtHeader->flags % 50) + 1;
+    
+    /* Execute extended B-Tree heap insert fuzzing */
+    fuzz_btree_heap_insert(&cx, pExtHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_PULL && size >= sizeof(BtreeHeapPullPacket) ) {
+    const BtreeHeapPullPacket *pExtHeader = (const BtreeHeapPullPacket*)data;
+    cx.execCnt = (pExtHeader->flags % 50) + 1;
+    
+    /* Execute extended B-Tree heap pull fuzzing */
+    fuzz_btree_heap_pull(&cx, pExtHeader);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -474,6 +518,11 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_BUSY_HANDLER ) packetSize = sizeof(BtreeAdvancedFuzzHeader);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_RESTORE_CURSOR ) packetSize = sizeof(BtreeAdvancedFuzzHeader);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_SHARED_CACHE_LOCK ) packetSize = sizeof(BtreeAdvancedFuzzHeader);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_END_TRANS ) packetSize = sizeof(BtreeTransEndPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_GET_PAGE ) packetSize = sizeof(BtreeGetPagePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_UNUSED_PAGE ) packetSize = sizeof(BtreeUnusedPagePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_INSERT ) packetSize = sizeof(BtreeHeapInsertPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_HEAP_PULL ) packetSize = sizeof(BtreeHeapPullPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

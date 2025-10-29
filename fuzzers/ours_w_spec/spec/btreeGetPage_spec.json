@@ -1,0 +1,88 @@
+{
+  "target": { 
+    "function": "btreeGetPage",
+    "fc": "btree_011",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 2328
+  },
+  "struct_spec": {
+    "btshared": {
+      "pPager": "Pager*",
+      "mutex": "sqlite3_mutex*",
+      "pageSize": "u32",
+      "usableSize": "u16",
+      "maxLocal": "u16",
+      "minLocal": "u16",
+      "maxLeaf": "u16",
+      "minLeaf": "u16"
+    },
+    "mempage": {
+      "isInit": "u8",
+      "nOverflow": "u8",
+      "intKey": "u8",
+      "intKeyLeaf": "u8",
+      "pgno": "Pgno",
+      "leaf": "u8",
+      "hdrOffset": "u8",
+      "childPtrSize": "u8",
+      "max1bytePayload": "u8",
+      "nFree": "u16",
+      "nCell": "u16",
+      "maskPage": "u16",
+      "aiOvfl": "u16[4]",
+      "apOvfl": "u8*[4]",
+      "pBt": "BtShared*",
+      "aData": "u8*",
+      "aDataEnd": "u8*",
+      "aCellIdx": "u8*",
+      "aDataOfst": "u8*",
+      "pDbPage": "DbPage*",
+      "xCellSize": "u16 (*)(MemPage*, int)",
+      "xParseCell": "void (*)(MemPage*, int, CellInfo*)"
+    },
+    "page_params": {
+      "pgno": "Pgno",
+      "flags": "int"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "page_size": [512, 65536],
+    "page_number": {"min": 1, "max": 4294967295},
+    "flags": ["PAGER_GET_NOCONTENT", "PAGER_GET_READONLY", "0"],
+    "mutex_required": true,
+    "valid_pager": true
+  },
+  "fc_mapping": {
+    "source": "btree.c:2328",
+    "rationale": "btreeGetPage - Critical page retrieval function for B-Tree operations",
+    "api_level": "internal"
+  },
+  "constraints": {
+    "max_input_size": 2048,
+    "min_input_size": 12,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "sqlite3_initialize() called",
+      "Valid BtShared object",
+      "Valid page number",
+      "Mutex held on BtShared",
+      "Pager initialized"
+    ],
+    "side_effects": [
+      "Page loaded into memory",
+      "DbPage reference count increased",
+      "MemPage structure initialized"
+    ],
+    "error_conditions": [
+      "SQLITE_IOERR: I/O error reading page",
+      "SQLITE_CORRUPT: Page corruption detected",
+      "SQLITE_NOMEM: Out of memory"
+    ]
+  }
+}
