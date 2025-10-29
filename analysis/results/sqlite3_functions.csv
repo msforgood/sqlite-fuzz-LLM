@@ -589,12 +589,12 @@ wrMutexFree,test_init.c,88,void,Other,Unknown,Critical,Low,False,True,Unknown fu
 wrPCachePagecount,test_init.c,132,int,Other,Unknown,Critical,Medium,False,True,Unknown function in Other subsystem,static int wrPCachePagecount(sqlite3_pcache *p){, False
 codeTableLocks,build.c,102,void,Parser,SQL Building,Critical,Low,False,True,SQL Building function in Parser subsystem,static void codeTableLocks(Parse *pParse){, True
 destroyRootPage,build.c,3280,void,Parser,SQL Building,Critical,Low,False,True,SQL Building function in Parser subsystem,"static void destroyRootPage(Parse *pParse, int iTable, int iDb){",True
-sqlite3CodeVerifyNamedSchema,build.c,5373,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifyNamedSchema(Parse *pParse, const char *zDb){", False
+sqlite3CodeVerifyNamedSchema,build.c,5373,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifyNamedSchema(Parse *pParse, const char *zDb){", True
 sqlite3CodeVerifySchema,build.c,5364,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifySchema(Parse *pParse, int iDb){",True
-sqlite3CodeVerifySchemaAtToplevel,build.c,5352,void,Parser,SQL Building,Critical,High,True,True,SQL Building function in Parser subsystem,"static void sqlite3CodeVerifySchemaAtToplevel(Parse *pToplevel, int iDb){", False
-sqlite3CommitInternalChanges,build.c,673,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,void sqlite3CommitInternalChanges(sqlite3 *db){, False
+sqlite3CodeVerifySchemaAtToplevel,build.c,5352,void,Parser,SQL Building,Critical,High,True,True,SQL Building function in Parser subsystem,"static void sqlite3CodeVerifySchemaAtToplevel(Parse *pToplevel, int iDb){", True
+sqlite3CommitInternalChanges,build.c,673,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,void sqlite3CommitInternalChanges(sqlite3 *db){, True
 sqlite3ExprAttachSubtrees,expr.c,996,void,Parser,Expression Evaluation,Critical,High,True,False,Expression Evaluation function in Parser subsystem,void sqlite3ExprAttachSubtrees(, False
-sqlite3FreeIndex,build.c,545,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3FreeIndex(sqlite3 *db, Index *p){", False
+sqlite3FreeIndex,build.c,545,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3FreeIndex(sqlite3 *db, Index *p){", True
 sqlite3NestedParse,build.c,293,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3NestedParse(Parse *pParse, const char *zFormat, ...){", False
 sqlite3RootPageMoved,build.c,3250,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3RootPageMoved(sqlite3 *db, int iDb, Pgno iFrom, Pgno iTo){", False
 sqlite3TableLock,build.c,86,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,void sqlite3TableLock(, False
