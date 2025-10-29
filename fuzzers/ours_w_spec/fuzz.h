@@ -28,6 +28,10 @@
 #define FUZZ_MODE_CREATE_TABLE   0x0C  /* Target btreeCreateTable */
 #define FUZZ_MODE_CURSOR         0x0D  /* Target btreeCursor */
 #define FUZZ_MODE_DROP_TABLE     0x0E  /* Target btreeDropTable */
+#define FUZZ_MODE_FREE_PAGE      0x10  /* Target freePage specifically */
+#define FUZZ_MODE_CLEAR_PAGE     0x11  /* Target clearDatabasePage specifically */
+#define FUZZ_MODE_DEFRAG_PAGE    0x12  /* Target defragmentPage specifically */
+#define FUZZ_MODE_CLOSE_CURSOR   0x13  /* Target sqlite3BtreeCloseCursor specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

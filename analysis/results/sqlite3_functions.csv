@@ -7,11 +7,7 @@ btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,F
 btreeClearHasContent,btree.c,682,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeClearHasContent(BtShared *pBt){, True
 btreeComputeFreeSpace,btree.c,2091,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeComputeFreeSpace(MemPage *pPage){, True
 btreeCreateTable,btree.c,10015,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeCreateTable(Btree *p, Pgno *piTable, int createTabFlags){", True
-<<<<<<< HEAD
-btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, True
-=======
 btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, False
->>>>>>> 7f60cfc (MAKE harness: btreeBeginTrans, btreeCellSizeCheck, btreeCreateTable)
 btreeCursor,btree.c,4751,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeCursor(p, iTable, wrFlag, pKeyInfo, pCur);", False
 btreeCursorWithLock,btree.c,4728,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeCursorWithLock(, True
 btreeCursorWithLock,btree.c,4749,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeCursorWithLock(p, iTable, wrFlag, pKeyInfo, pCur);", False
@@ -48,13 +44,13 @@ btreeSetHasContent,btree.c,651,int,B-Tree,Index Management,Critical,Medium,False
 btreeSetNPage,btree.c,4475,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void btreeSetNPage(BtShared *pBt, MemPage *pPage1){", False
 checkTreePage,btree.c,10816,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int checkTreePage(, False
 clearAllSharedCacheTableLocks,btree.c,467,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void clearAllSharedCacheTableLocks(Btree *p){, False
-clearDatabasePage,btree.c,10172,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int clearDatabasePage(, False
+clearDatabasePage,btree.c,10172,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int clearDatabasePage(, True
 corruptPageError,btree.c,136,int,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"int corruptPageError(int lineno, MemPage *p){", False
 cursorOnLastPage,btree.c,5964,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int cursorOnLastPage(BtCursor *pCur){, False
-defragmentPage,btree.c,1613,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int defragmentPage(MemPage *pPage, int nMaxFrag){", False
+defragmentPage,btree.c,1613,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int defragmentPage(MemPage *pPage, int nMaxFrag){", True
 downgradeAllSharedCacheTableLocks,btree.c,513,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void downgradeAllSharedCacheTableLocks(Btree *p){, False
 editPage,btree.c,7834,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int editPage(, False
-freePage,btree.c,6931,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void freePage(MemPage *pPage, int *pRC){", False
+freePage,btree.c,6931,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void freePage(MemPage *pPage, int *pRC){", True
 freePage2,btree.c,6797,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int freePage2(BtShared *pBt, MemPage *pMemPage, Pgno iPage){", False
 freeSpace,btree.c,1918,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int freeSpace(MemPage *pPage, int iStart, int iSize){", False
 freeTempSpace,btree.c,2906,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static void freeTempSpace(BtShared *pBt){, False
@@ -91,7 +87,7 @@ sqlite3BtreeClearTable,btree.c,10239,int,B-Tree,Index Management,Critical,High,T
 sqlite3BtreeClearTable,btree.c,10266,return,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"return sqlite3BtreeClearTable(pCur->pBtree, pCur->pgnoRoot, 0);", False
 sqlite3BtreeClearTableOfCursor,btree.c,10265,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeClearTableOfCursor(BtCursor *pCur){, False
 sqlite3BtreeClose,btree.c,2917,int,B-Tree,Database Connection,Critical,Medium,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeClose(Btree *p){, False
-sqlite3BtreeCloseCursor,btree.c,4802,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeCloseCursor(BtCursor *pCur){, False
+sqlite3BtreeCloseCursor,btree.c,4802,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeCloseCursor(BtCursor *pCur){, True
 sqlite3BtreeClosesWithCursor,btree.c,4773,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeClosesWithCursor(, False
 sqlite3BtreeCommit,btree.c,4406,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeCommit(Btree *p){, False
 sqlite3BtreeCommitPhaseOne,btree.c,4285,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCommitPhaseOne(Btree *p, const char *zSuperJrnl){", False
