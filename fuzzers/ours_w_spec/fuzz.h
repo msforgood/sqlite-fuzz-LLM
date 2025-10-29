@@ -39,6 +39,9 @@
 #define FUZZ_MODE_CODE_TABLE_LOCKS      0x20  /* Target codeTableLocks specifically */
 #define FUZZ_MODE_DESTROY_ROOT_PAGE     0x21  /* Target destroyRootPage specifically */
 #define FUZZ_MODE_CODE_VERIFY_SCHEMA    0x22  /* Target sqlite3CodeVerifySchema specifically */
+#define FUZZ_MODE_BTREE_BUSY_HANDLER    0x30  /* Target btreeInvokeBusyHandler specifically */
+#define FUZZ_MODE_BTREE_RESTORE_CURSOR  0x31  /* Target btreeRestoreCursorPosition specifically */
+#define FUZZ_MODE_BTREE_SHARED_CACHE_LOCK 0x32  /* Target setSharedCacheTableLock specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
