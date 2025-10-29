@@ -60,6 +60,10 @@
 #define FUZZ_MODE_VDBE_RECORD_COMPARE_STRING 0x42  /* Target vdbeRecordCompareString specifically */
 #define FUZZ_MODE_VDBE_RECORD_COMPARE_INT 0x43  /* Target vdbeRecordCompareInt specifically */
 #define FUZZ_MODE_VDBE_RECORD_DECODE_INT 0x44  /* Target vdbeRecordDecodeInt specifically */
+#define FUZZ_MODE_VDBE_MEM_SET_ZERO_BLOB 0x45  /* Target sqlite3VdbeMemSetZeroBlob specifically */
+#define FUZZ_MODE_VDBE_MEM_SHALLOW_COPY 0x46  /* Target sqlite3VdbeMemShallowCopy specifically */
+#define FUZZ_MODE_VDBE_MEM_STRINGIFY 0x47  /* Target sqlite3VdbeMemStringify specifically */
+#define FUZZ_MODE_VDBE_MEM_VALID_STR_REP 0x48  /* Target sqlite3VdbeMemValidStrRep specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -285,6 +289,7 @@ sqlite3_int64 timeOfDay(void);
 #include "storage_pager_harness.h"
 #include "query_where_harness.h"
 #include "vdbe_record_harness.h"
+#include "vdbe_memory_advanced_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

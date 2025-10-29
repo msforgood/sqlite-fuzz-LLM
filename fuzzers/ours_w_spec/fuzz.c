@@ -139,7 +139,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 73; /* 0-72 valid modes, added VDBE Record harnesses */
+  cx.fuzzMode = fuzzSelector % 77; /* 0-76 valid modes, added VDBE Memory Advanced harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -321,6 +321,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pRdiPacket->serialType;
     cx.allocMode = pRdiPacket->scenario;
     cx.corruptionSeed = pRdiPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_SET_ZERO_BLOB && size >= sizeof(MemSetZeroBlobPacket) ) {
+    const MemSetZeroBlobPacket *pMszbPacket = (const MemSetZeroBlobPacket*)data;
+    cx.targetPgno = pMszbPacket->blob_size;
+    cx.allocMode = pMszbPacket->scenario;
+    cx.corruptionSeed = pMszbPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_SHALLOW_COPY && size >= sizeof(MemShallowCopyPacket) ) {
+    const MemShallowCopyPacket *pMscPacket = (const MemShallowCopyPacket*)data;
+    cx.targetPgno = pMscPacket->data_size;
+    cx.allocMode = pMscPacket->scenario;
+    cx.corruptionSeed = pMscPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_STRINGIFY && size >= sizeof(MemStringifyPacket) ) {
+    const MemStringifyPacket *pMsPacket = (const MemStringifyPacket*)data;
+    cx.targetPgno = pMsPacket->int_value;
+    cx.allocMode = pMsPacket->scenario;
+    cx.corruptionSeed = pMsPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_VALID_STR_REP && size >= sizeof(MemValidStrRepPacket) ) {
+    const MemValidStrRepPacket *pMvsrPacket = (const MemValidStrRepPacket*)data;
+    cx.targetPgno = pMvsrPacket->str_length;
+    cx.allocMode = pMvsrPacket->scenario;
+    cx.corruptionSeed = pMvsrPacket->corruption_flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -834,6 +854,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE record decode int fuzzing */
     fuzz_vdbe_record_decode_int(&cx, pRdiPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_SET_ZERO_BLOB && size >= sizeof(MemSetZeroBlobPacket) ) {
+    const MemSetZeroBlobPacket *pMszbPacket = (const MemSetZeroBlobPacket*)data;
+    cx.execCnt = (pMszbPacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE memory set zero blob fuzzing */
+    fuzz_vdbe_mem_set_zero_blob(&cx, pMszbPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_SHALLOW_COPY && size >= sizeof(MemShallowCopyPacket) ) {
+    const MemShallowCopyPacket *pMscPacket = (const MemShallowCopyPacket*)data;
+    cx.execCnt = (pMscPacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE memory shallow copy fuzzing */
+    fuzz_vdbe_mem_shallow_copy(&cx, pMscPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_STRINGIFY && size >= sizeof(MemStringifyPacket) ) {
+    const MemStringifyPacket *pMsPacket = (const MemStringifyPacket*)data;
+    cx.execCnt = (pMsPacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE memory stringify fuzzing */
+    fuzz_vdbe_mem_stringify(&cx, pMsPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_MEM_VALID_STR_REP && size >= sizeof(MemValidStrRepPacket) ) {
+    const MemValidStrRepPacket *pMvsrPacket = (const MemValidStrRepPacket*)data;
+    cx.execCnt = (pMvsrPacket->stringData[0] % 50) + 1;
+    
+    /* Execute VDBE memory valid string rep fuzzing */
+    fuzz_vdbe_mem_valid_str_rep(&cx, pMvsrPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;

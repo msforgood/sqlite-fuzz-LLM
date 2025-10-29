@@ -875,13 +875,13 @@ sqlite3VdbeMemSetNull,vdbemem.c,881,void,VDBE,Memory Operations,Critical,High,Tr
 sqlite3VdbeMemSetPointer,vdbemem.c,960,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3VdbeMemSetPointer(, False
 sqlite3VdbeMemSetRowSet,vdbemem.c,1007,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemSetRowSet(Mem *pMem){, False
 sqlite3VdbeMemSetStr,vdbemem.c,1161,int,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemSetStr(, False
-sqlite3VdbeMemSetZeroBlob,vdbemem.c,897,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", False
-sqlite3VdbeMemSetZeroBlob,vdbemem.c,907,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", False
+sqlite3VdbeMemSetZeroBlob,vdbemem.c,897,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", True
+sqlite3VdbeMemSetZeroBlob,vdbemem.c,907,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", True
 sqlite3VdbeMemSetZeroBlob,vdbeapi.c,665,return,VDBE,API Interface,Critical,High,True,False,API Interface function in VDBE subsystem,"return sqlite3VdbeMemSetZeroBlob(pCtx->pOut, (int)n);", False
-sqlite3VdbeMemShallowCopy,vdbemem.c,1089,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemShallowCopy(Mem *pTo, const Mem *pFrom, int srcType){", False
-sqlite3VdbeMemStringify,vdbemem.c,458,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemStringify(Mem *pMem, u8 enc, u8 bForce){", False
+sqlite3VdbeMemShallowCopy,vdbemem.c,1089,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemShallowCopy(Mem *pTo, const Mem *pFrom, int srcType){", True
+sqlite3VdbeMemStringify,vdbemem.c,458,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemStringify(Mem *pMem, u8 enc, u8 bForce){", True
 sqlite3VdbeMemTooBig,vdbemem.c,1025,int,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemTooBig(Mem *p){, False
-sqlite3VdbeMemValidStrRep,vdbemem.c,154,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemValidStrRep(Mem *p){, False
+sqlite3VdbeMemValidStrRep,vdbemem.c,154,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemValidStrRep(Mem *p){, True
 sqlite3VdbeMemZeroTerminateIfAble,vdbemem.c,324,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3VdbeMemZeroTerminateIfAble(Mem *pMem){, False
 sqlite3VdbeMultiLoad,vdbeaux.c,391,void,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeMultiLoad(Vdbe *p, int iDest, const char *zTypes, ...){", False
 sqlite3VdbeNextOpcode,vdbeaux.c,2258,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeNextOpcode(, False
