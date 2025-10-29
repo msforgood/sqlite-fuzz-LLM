@@ -761,11 +761,11 @@ sqlite3_backup_finish,backup.c,571,int,Utility,Database Backup,Critical,High,Tru
 sqlite3_backup_pagecount,backup.c,639,int,Utility,Database Backup,Critical,High,True,False,Database Backup function in Utility subsystem,int sqlite3_backup_pagecount(sqlite3_backup *p){, False
 sqlite3_backup_remaining,backup.c,625,int,Utility,Database Backup,Critical,High,True,False,Database Backup function in Utility subsystem,int sqlite3_backup_remaining(sqlite3_backup *p){, False
 sqlite3_backup_step,backup.c,314,int,Utility,Statement Execution,Critical,Medium,True,False,Statement Execution function in Utility subsystem,"int sqlite3_backup_step(sqlite3_backup *p, int nPage){", False
-checkActiveVdbeCnt,vdbeaux.c,3183,void,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static void checkActiveVdbeCnt(sqlite3 *db){, False
-columnMallocFailure,vdbeapi.c,1343,void,VDBE,API Interface,Critical,Medium,False,True,API Interface function in VDBE subsystem,static void columnMallocFailure(sqlite3_stmt *pStmt), False
+checkActiveVdbeCnt,vdbeaux.c,3183,void,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static void checkActiveVdbeCnt(sqlite3 *db){, True
+columnMallocFailure,vdbeapi.c,1343,void,VDBE,API Interface,Critical,Medium,False,True,API Interface function in VDBE subsystem,static void columnMallocFailure(sqlite3_stmt *pStmt), True
 freeEphemeralFunction,vdbeaux.c,19,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeEphemeralFunction(sqlite3 *db, FuncDef *pDef);", True
 freeEphemeralFunction,vdbeaux.c,1358,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeEphemeralFunction(sqlite3 *db, FuncDef *pDef){", True
-freeP4,vdbeaux.c,1377,void,VDBE,Auxiliary Functions,Critical,Low,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeP4(sqlite3 *db, int p4type, void *p4){", False
+freeP4,vdbeaux.c,1377,void,VDBE,Auxiliary Functions,Critical,Low,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeP4(sqlite3 *db, int p4type, void *p4){", True
 sqlite3ErrorToParser,vdbemem.c,1211,return,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,"return sqlite3ErrorToParser(pMem->db, SQLITE_TOOBIG);", False
 sqlite3ExpirePreparedStatements,vdbeaux.c,5333,void,VDBE,Statement Preparation,Critical,High,True,False,Statement Preparation function in VDBE subsystem,"void sqlite3ExpirePreparedStatements(sqlite3 *db, int iCode){", True
 sqlite3Stat4ProbeFree,vdbemem.c,1993,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3Stat4ProbeFree(UnpackedRecord *pRec){, True
@@ -935,7 +935,7 @@ sqlite3VdbeVerifyNoMallocRequired,vdbeaux.c,1079,void,VDBE,Auxiliary Functions,C
 sqlite3VdbeVerifyNoResultRow,vdbeaux.c,1092,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,void sqlite3VdbeVerifyNoResultRow(Vdbe *p){, False
 sqlite3_step,vdbeapi.c,895,int,VDBE,Statement Execution,Critical,Low,True,False,Statement Execution function in VDBE subsystem,int sqlite3_step(sqlite3_stmt *pStmt){, False
 sqlite3_value_free,vdbeapi.c,371,void,VDBE,API Interface,Critical,Medium,True,False,API Interface function in VDBE subsystem,void sqlite3_value_free(sqlite3_value *pOld){, True
-vdbeAssertFieldCountWithinLimits,vdbeaux.c,4416,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static void vdbeAssertFieldCountWithinLimits(, False
+vdbeAssertFieldCountWithinLimits,vdbeaux.c,4416,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static void vdbeAssertFieldCountWithinLimits(, True
 vdbeCloseStatement,vdbeaux.c,3263,return,VDBE,Auxiliary Functions,Critical,Medium,False,False,Auxiliary Functions function in VDBE subsystem,"return vdbeCloseStatement(p, eOp);", False
 vdbeCommit,vdbeaux.c,2915,int,VDBE,Auxiliary Functions,Critical,Low,False,True,Auxiliary Functions function in VDBE subsystem,"static int vdbeCommit(sqlite3 *db, Vdbe *p){", False
 vdbeCompareMemString,vdbeaux.c,4472,int,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeCompareMemString(, False

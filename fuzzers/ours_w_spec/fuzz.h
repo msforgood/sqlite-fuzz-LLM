@@ -45,6 +45,9 @@
 #define FUZZ_MODE_BTREE_MOVETO          0x33  /* Target btreeMoveto specifically */
 #define FUZZ_MODE_BTREE_OVERWRITE_CELL  0x34  /* Target btreeOverwriteCell specifically */
 #define FUZZ_MODE_BTREE_OVERWRITE_CONTENT 0x35  /* Target btreeOverwriteContent specifically */
+#define FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE 0x36  /* Target columnMallocFailure specifically */
+#define FUZZ_MODE_VDBE_FREE_P4          0x37  /* Target freeP4 specifically */
+#define FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT 0x38  /* Target vdbeAssertFieldCountWithinLimits specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -172,6 +175,36 @@ typedef struct OverwriteContentPacket {
   uint8_t contentData[16];   /* Content to write */
 } OverwriteContentPacket;
 
+/* Input packet for columnMallocFailure fuzzing */
+typedef struct ColumnMallocFailurePacket {
+  uint8_t errorCode;         /* Error code type (NOMEM, ERROR, etc.) */
+  uint8_t encoding;          /* Text encoding type */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t stmtState;        /* Statement state simulation */
+  uint32_t mallocSize;       /* Failed allocation size */
+  uint8_t testData[16];      /* Additional test parameters */
+} ColumnMallocFailurePacket;
+
+/* Input packet for freeP4 fuzzing */
+typedef struct FreeP4Packet {
+  uint8_t p4Type;            /* P4 parameter type */
+  uint8_t freeMode;          /* Free operation mode */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t allocSize;        /* Allocation size for testing */
+  uint32_t refCount;         /* Reference count simulation */
+  uint8_t p4Data[16];        /* P4 content data */
+} FreeP4Packet;
+
+/* Input packet for vdbeAssertFieldCountWithinLimits fuzzing */
+typedef struct AssertFieldCountPacket {
+  uint8_t fieldCount;        /* Number of fields in record */
+  uint8_t encoding;          /* Record encoding */
+  uint16_t scenario;         /* Test scenario selector */
+  uint32_t keySize;          /* Record key size */
+  uint32_t headerSize;       /* Record header size */
+  uint8_t recordData[16];    /* Record content data */
+} AssertFieldCountPacket;
+
 /* Core function declarations */
 int progress_handler(void *pClientData);
 int exec_handler(void *pClientData, int argc, char **argv, char **namev);
@@ -184,6 +217,7 @@ sqlite3_int64 timeOfDay(void);
 #include "parser_advanced_harness.h"
 #include "btree_meta_harness.h"
 #include "btree_cursor_ops_harness.h"
+#include "vdbe_auxiliary_extended_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

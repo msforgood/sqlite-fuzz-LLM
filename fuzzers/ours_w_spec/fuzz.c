@@ -23,6 +23,7 @@
 #include "storage_pager_harness.h"
 #include "vdbe_auxiliary_harness.h"
 #include "btree_cursor_ops_harness.h"
+#include "vdbe_auxiliary_extended_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -132,11 +133,13 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(VdbeStat4ProbePacket) && size < sizeof(VdbeValueFreePacket) &&
       size < sizeof(VdbeEphemeralFuncPacket) &&
       size < sizeof(MovetoPacket) && size < sizeof(OverwriteCellPacket) &&
-      size < sizeof(OverwriteContentPacket) ) return 0;
+      size < sizeof(OverwriteContentPacket) &&
+      size < sizeof(ColumnMallocFailurePacket) && size < sizeof(FreeP4Packet) &&
+      size < sizeof(AssertFieldCountPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 58; /* 0-57 valid modes, added btreeMoveto/OverwriteCell/OverwriteContent harnesses */
+  cx.fuzzMode = fuzzSelector % 61; /* 0-60 valid modes, added VDBE auxiliary extended harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -243,6 +246,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pOwCtPacket->iOffset;
     cx.allocMode = pOwCtPacket->writeMode;
     cx.corruptionSeed = pOwCtPacket->iAmt;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE && size >= sizeof(ColumnMallocFailurePacket) ) {
+    const ColumnMallocFailurePacket *pCmfPacket = (const ColumnMallocFailurePacket*)data;
+    cx.targetPgno = pCmfPacket->mallocSize;
+    cx.allocMode = pCmfPacket->errorCode;
+    cx.corruptionSeed = pCmfPacket->stmtState;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_FREE_P4 && size >= sizeof(FreeP4Packet) ) {
+    const FreeP4Packet *pFp4Packet = (const FreeP4Packet*)data;
+    cx.targetPgno = pFp4Packet->allocSize;
+    cx.allocMode = pFp4Packet->p4Type;
+    cx.corruptionSeed = pFp4Packet->refCount;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT && size >= sizeof(AssertFieldCountPacket) ) {
+    const AssertFieldCountPacket *pAfcPacket = (const AssertFieldCountPacket*)data;
+    cx.targetPgno = pAfcPacket->keySize;
+    cx.allocMode = pAfcPacket->fieldCount;
+    cx.corruptionSeed = pAfcPacket->headerSize;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -363,6 +381,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const OverwriteCellPacket*)data)->scenario & 1 :
     (cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CONTENT) ?
     ((const OverwriteContentPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE) ?
+    ((const ColumnMallocFailurePacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_FREE_P4) ?
+    ((const FreeP4Packet*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT) ?
+    ((const AssertFieldCountPacket*)data)->scenario & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -676,6 +700,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute B-Tree overwrite content fuzzing */
     fuzz_btree_overwrite_content(&cx, pOwCtPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE && size >= sizeof(ColumnMallocFailurePacket) ) {
+    const ColumnMallocFailurePacket *pCmfPacket = (const ColumnMallocFailurePacket*)data;
+    cx.execCnt = (pCmfPacket->testData[0] % 50) + 1;
+    
+    /* Execute VDBE column malloc failure fuzzing */
+    fuzz_column_malloc_failure(&cx, pCmfPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_FREE_P4 && size >= sizeof(FreeP4Packet) ) {
+    const FreeP4Packet *pFp4Packet = (const FreeP4Packet*)data;
+    cx.execCnt = (pFp4Packet->p4Data[0] % 50) + 1;
+    
+    /* Execute VDBE free P4 fuzzing */
+    fuzz_free_p4(&cx, pFp4Packet);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT && size >= sizeof(AssertFieldCountPacket) ) {
+    const AssertFieldCountPacket *pAfcPacket = (const AssertFieldCountPacket*)data;
+    cx.execCnt = (pAfcPacket->recordData[0] % 50) + 1;
+    
+    /* Execute VDBE assert field count fuzzing */
+    fuzz_assert_field_count(&cx, pAfcPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -729,6 +771,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_MOVETO ) packetSize = sizeof(MovetoPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CELL ) packetSize = sizeof(OverwriteCellPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_CONTENT ) packetSize = sizeof(OverwriteContentPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_COLUMN_MALLOC_FAILURE ) packetSize = sizeof(ColumnMallocFailurePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_FREE_P4 ) packetSize = sizeof(FreeP4Packet);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT ) packetSize = sizeof(AssertFieldCountPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
