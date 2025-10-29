@@ -36,6 +36,9 @@
 #define FUZZ_MODE_SET_NUMCOLS     0x15  /* Target sqlite3VdbeSetNumCols specifically */
 #define FUZZ_MODE_MEM_WRITEABLE   0x16  /* Target sqlite3VdbeMemMakeWriteable specifically */
 #define FUZZ_MODE_VALUE_FREE      0x17  /* Target sqlite3_value_free specifically */
+#define FUZZ_MODE_CODE_TABLE_LOCKS      0x20  /* Target codeTableLocks specifically */
+#define FUZZ_MODE_DESTROY_ROOT_PAGE     0x21  /* Target destroyRootPage specifically */
+#define FUZZ_MODE_CODE_VERIFY_SCHEMA    0x22  /* Target sqlite3CodeVerifySchema specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

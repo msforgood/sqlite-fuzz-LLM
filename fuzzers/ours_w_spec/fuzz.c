@@ -16,6 +16,7 @@
 #include "drop_table_harness.h"
 #include "page_ops_harness.h"
 #include "vdbe_ops_harness.h"
+#include "parser_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -117,11 +118,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(FreePagePacket) && size < sizeof(ClearPagePacket) &&
       size < sizeof(DefragPagePacket) && size < sizeof(CloseCursorPacket) &&
       size < sizeof(DeleteAuxDataPacket) && size < sizeof(SetNumColsPacket) &&
-      size < sizeof(MemWriteablePacket) && size < sizeof(ValueFreePacket) ) return 0;
+      size < sizeof(MemWriteablePacket) && size < sizeof(ValueFreePacket) &&
+      size < sizeof(ParserFuzzHeader) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 24; /* 0-23 valid modes, added VDBE operations harnesses */
+  cx.fuzzMode = fuzzSelector % 27; /* 0-26 valid modes, added parser operations harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -281,6 +283,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const MemWriteablePacket*)data)->memFlags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VALUE_FREE) ?
     ((const ValueFreePacket*)data)->valueType & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CODE_TABLE_LOCKS) ?
+    ((const ParserFuzzHeader*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_DESTROY_ROOT_PAGE) ?
+    ((const ParserFuzzHeader*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CODE_VERIFY_SCHEMA) ?
+    ((const ParserFuzzHeader*)data)->flags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -390,6 +398,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute value free fuzzing */
     fuzz_value_free(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_CODE_TABLE_LOCKS && size >= sizeof(ParserFuzzHeader) ) {
+    const ParserFuzzHeader *pParserHeader = (const ParserFuzzHeader*)data;
+    cx.execCnt = (pParserHeader->flags % 50) + 1;
+    
+    /* Execute parser codeTableLocks fuzzing */
+    fuzz_codeTableLocks(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_DESTROY_ROOT_PAGE && size >= sizeof(ParserFuzzHeader) ) {
+    const ParserFuzzHeader *pParserHeader = (const ParserFuzzHeader*)data;
+    cx.execCnt = (pParserHeader->flags % 50) + 1;
+    
+    /* Execute parser destroyRootPage fuzzing */
+    fuzz_destroyRootPage(data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_CODE_VERIFY_SCHEMA && size >= sizeof(ParserFuzzHeader) ) {
+    const ParserFuzzHeader *pParserHeader = (const ParserFuzzHeader*)data;
+    cx.execCnt = (pParserHeader->flags % 50) + 1;
+    
+    /* Execute parser sqlite3CodeVerifySchema fuzzing */
+    fuzz_sqlite3CodeVerifySchema(data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -417,6 +443,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_SET_NUMCOLS ) packetSize = sizeof(SetNumColsPacket);
   else if( cx.fuzzMode == FUZZ_MODE_MEM_WRITEABLE ) packetSize = sizeof(MemWriteablePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VALUE_FREE ) packetSize = sizeof(ValueFreePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_CODE_TABLE_LOCKS ) packetSize = sizeof(ParserFuzzHeader);
+  else if( cx.fuzzMode == FUZZ_MODE_DESTROY_ROOT_PAGE ) packetSize = sizeof(ParserFuzzHeader);
+  else if( cx.fuzzMode == FUZZ_MODE_CODE_VERIFY_SCHEMA ) packetSize = sizeof(ParserFuzzHeader);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
