@@ -20,6 +20,7 @@
 #include "btree_advanced_harness.h"
 #include "btree_extended_harness.h"
 #include "vdbe_memory_harness.h"
+#include "storage_pager_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -131,7 +132,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 39; /* 0-38 valid modes, added VDBE memory harnesses */
+  cx.fuzzMode = fuzzSelector % 43; /* 0-42 valid modes, added Storage Pager harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -321,6 +322,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const VdbeValueFreePacket*)data)->flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC) ?
     ((const VdbeEphemeralFuncPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGER_ACQUIRE_MMAP) ?
+    ((const PagerAcquireMapPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN) ?
+    ((const PagerBeginReadTxnPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK) ?
+    ((const PagerExclusiveLockPacket*)data)->corruption_flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL) ?
+    ((const GetPageNormalPacket*)data)->corruption_flags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -520,6 +529,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE ephemeral function fuzzing */
     fuzz_vdbe_ephemeral_function(&cx, pVdbeHeader);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_ACQUIRE_MMAP && size >= sizeof(PagerAcquireMapPacket) ) {
+    const PagerAcquireMapPacket *pPagerPacket = (const PagerAcquireMapPacket*)data;
+    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
+    
+    /* Execute Storage Pager acquire mmap fuzzing */
+    fuzz_pager_acquire_mmap(&cx, pPagerPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN && size >= sizeof(PagerBeginReadTxnPacket) ) {
+    const PagerBeginReadTxnPacket *pPagerPacket = (const PagerBeginReadTxnPacket*)data;
+    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
+    
+    /* Execute Storage Pager begin read transaction fuzzing */
+    fuzz_pager_begin_read_txn(&cx, pPagerPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK && size >= sizeof(PagerExclusiveLockPacket) ) {
+    const PagerExclusiveLockPacket *pPagerPacket = (const PagerExclusiveLockPacket*)data;
+    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
+    
+    /* Execute Storage Pager exclusive lock fuzzing */
+    fuzz_pager_exclusive_lock(&cx, pPagerPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL && size >= sizeof(GetPageNormalPacket) ) {
+    const GetPageNormalPacket *pPagerPacket = (const GetPageNormalPacket*)data;
+    cx.execCnt = (pPagerPacket->testData[0] % 50) + 1;
+    
+    /* Execute Storage Pager get page normal fuzzing */
+    fuzz_get_page_normal(&cx, pPagerPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -562,6 +595,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_STAT4_PROBE ) packetSize = sizeof(VdbeStat4ProbePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_VALUE_FREE ) packetSize = sizeof(VdbeValueFreePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_EPHEMERAL_FUNC ) packetSize = sizeof(VdbeEphemeralFuncPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGER_ACQUIRE_MMAP ) packetSize = sizeof(PagerAcquireMapPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGER_BEGIN_READ_TXN ) packetSize = sizeof(PagerBeginReadTxnPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGER_EXCLUSIVE_LOCK ) packetSize = sizeof(PagerExclusiveLockPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_PAGER_GET_PAGE_NORMAL ) packetSize = sizeof(GetPageNormalPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
