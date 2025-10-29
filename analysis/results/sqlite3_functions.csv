@@ -611,13 +611,13 @@ getPageError,pager.c,1034,int,Storage,Page Management,Critical,Low,False,True,Pa
 getPageError,pager.c,5706,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageError(, False
 getPageMMap,pager.c,1036,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageMMap(Pager*,Pgno,DbPage**,int);", False
 getPageMMap,pager.c,5637,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageMMap(, False
-getPageNormal,pager.c,1033,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageNormal(Pager*,Pgno,DbPage**,int);", False
-getPageNormal,pager.c,5531,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageNormal(, False
-getPageNormal,pager.c,5701,return,Storage,Page Management,Critical,Low,False,False,Page Management function in Storage subsystem,"return getPageNormal(pPager, pgno, ppPage, flags);", False
+getPageNormal,pager.c,1033,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageNormal(Pager*,Pgno,DbPage**,int);", True
+getPageNormal,pager.c,5531,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageNormal(, True
+getPageNormal,pager.c,5701,return,Storage,Page Management,Critical,Low,False,False,Page Management function in Storage subsystem,"return getPageNormal(pPager, pgno, ppPage, flags);", True
 pageInJournal,pager.c,1085,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int pageInJournal(Pager *pPager, PgHdr *pPg){", False
-pagerAcquireMapPage,pager.c,4068,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerAcquireMapPage(, False
-pagerBeginReadTransaction,pager.c,3244,int,Storage,Page Management,Critical,High,False,True,Page Management function in Storage subsystem,static int pagerBeginReadTransaction(Pager *pPager){, False
-pagerExclusiveLock,pager.c,7555,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerExclusiveLock(Pager *pPager){, False
+pagerAcquireMapPage,pager.c,4068,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerAcquireMapPage(, True
+pagerBeginReadTransaction,pager.c,3244,int,Storage,Page Management,Critical,High,False,True,Page Management function in Storage subsystem,static int pagerBeginReadTransaction(Pager *pPager){, True
+pagerExclusiveLock,pager.c,7555,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerExclusiveLock(Pager *pPager){, True
 pagerFixMaplimit,pager.c,3531,void,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static void pagerFixMaplimit(Pager *pPager){, False
 pagerFlushOnCommit,pager.c,1979,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,"static int pagerFlushOnCommit(Pager *pPager, int bCommit){", False
 pagerFreeMapHdrs,pager.c,4126,void,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static void pagerFreeMapHdrs(Pager *pPager){, False
