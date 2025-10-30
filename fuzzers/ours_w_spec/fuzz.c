@@ -52,6 +52,8 @@
 #include "btree_commitphase2_harness.h"
 #include "btree_pagesize_harness.h"
 #include "btree_mutex_batch_harness.h"
+#include "btree_cursor_restore_harness.h"
+#include "btree_config_batch_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -1731,6 +1733,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     return test_sqlite3BtreeSetPageSize(data, size);
   } else if( data[0] == 208 ) {
     return test_batch_btree_mutex_functions(data, size);
+  } else if( data[0] == 209 ) {
+    return test_sqlite3BtreeCursorRestore(data, size);
+  } else if( data[0] == 210 ) {
+    return test_batch_btree_config_functions(data, size);
   }
   
   if( size > packetSize ) {
