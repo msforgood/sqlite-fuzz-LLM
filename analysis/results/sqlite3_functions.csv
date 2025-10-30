@@ -91,7 +91,7 @@ sqlite3BtreeCloseCursor,btree.c,4802,int,B-Tree,Database Connection,Critical,Hig
 sqlite3BtreeClosesWithCursor,btree.c,4773,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeClosesWithCursor(, True
 sqlite3BtreeCommit,btree.c,4406,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeCommit(Btree *p){, True
 sqlite3BtreeCommitPhaseOne,btree.c,4285,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCommitPhaseOne(Btree *p, const char *zSuperJrnl){", True
-sqlite3BtreeCommitPhaseTwo,btree.c,4374,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCommitPhaseTwo(Btree *p, int bCleanup){", False
+sqlite3BtreeCommitPhaseTwo,btree.c,4374,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCommitPhaseTwo(Btree *p, int bCleanup){", True
 sqlite3BtreeConnectionCount,btree.c,11540,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeConnectionCount(Btree *p){, False
 sqlite3BtreeCount,btree.c,10465,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCount(sqlite3 *db, BtCursor *pCur, i64 *pnEntry){", True
 sqlite3BtreeCreateTable,btree.c,10160,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCreateTable(Btree *p, Pgno *piTable, int flags){", True
@@ -149,7 +149,7 @@ sqlite3BtreeSeekCount,btree.c,119,sqlite3_uint64,B-Tree,Index Management,Critica
 sqlite3BtreeSetAutoVacuum,btree.c,3198,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetAutoVacuum(Btree *p, int autoVacuum){", False
 sqlite3BtreeSetCacheSize,btree.c,2983,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetCacheSize(Btree *p, int mxPage){", False
 sqlite3BtreeSetMmapLimit,btree.c,3017,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetMmapLimit(Btree *p, sqlite3_int64 szMmap){", False
-sqlite3BtreeSetPageSize,btree.c,3069,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetPageSize(Btree *p, int pageSize, int nReserve, int iFix){", False
+sqlite3BtreeSetPageSize,btree.c,3069,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetPageSize(Btree *p, int pageSize, int nReserve, int iFix){", True
 sqlite3BtreeSetPagerFlags,btree.c,3036,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeSetPagerFlags(, False
 sqlite3BtreeSetSpillSize,btree.c,3002,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetSpillSize(Btree *p, int mxPage){", False
 sqlite3BtreeSetVersion,btree.c,11465,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetVersion(Btree *pBtree, int iVersion){", False
@@ -165,17 +165,17 @@ sqlite3PagerJournalname,btree.c,11275,return,B-Tree,Index Management,Critical,Hi
 sqlite3PagerOpenSavepoint,btree.c,3794,return,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,"return sqlite3PagerOpenSavepoint(pBt->pPager, p->db->nSavepoint);", False
 unlockBtreeIfUnused,btree.c,3489,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void unlockBtreeIfUnused(BtShared *pBt){, False
 zeroPage,btree.c,2267,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void zeroPage(MemPage *pPage, int flags){", False
-lockBtreeMutex,btmutex.c,27,void,Concurrency,Mutex Operations,Critical,Low,False,True,Mutex Operations function in Concurrency subsystem,static void lockBtreeMutex(Btree *p){, False
-sqlite3BtreeEnter,btmutex.c,71,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnter(Btree *p){, False
+lockBtreeMutex,btmutex.c,27,void,Concurrency,Mutex Operations,Critical,Low,False,True,Mutex Operations function in Concurrency subsystem,static void lockBtreeMutex(Btree *p){, True
+sqlite3BtreeEnter,btmutex.c,71,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnter(Btree *p){, True
 sqlite3BtreeEnter,btmutex.c,277,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnter(Btree *p){, False
-sqlite3BtreeEnterAll,btmutex.c,200,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnterAll(sqlite3 *db){, False
+sqlite3BtreeEnterAll,btmutex.c,200,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnterAll(sqlite3 *db){, True
 sqlite3BtreeEnterAll,btmutex.c,280,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnterAll(sqlite3 *db){, False
-sqlite3BtreeEnterCursor,btmutex.c,299,void,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnterCursor(BtCursor *pCur){, False
-sqlite3BtreeHoldsAllMutexes,btmutex.c,223,int,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,int sqlite3BtreeHoldsAllMutexes(sqlite3 *db){, False
-sqlite3BtreeHoldsMutex,btmutex.c,161,int,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,int sqlite3BtreeHoldsMutex(Btree *p){, False
-sqlite3BtreeLeave,btmutex.c,143,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeLeave(Btree *p){, False
-sqlite3BtreeLeaveAll,btmutex.c,212,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeLeaveAll(sqlite3 *db){, False
-sqlite3BtreeLeaveCursor,btmutex.c,303,void,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeLeaveCursor(BtCursor *pCur){, False
+sqlite3BtreeEnterCursor,btmutex.c,299,void,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeEnterCursor(BtCursor *pCur){, True
+sqlite3BtreeHoldsAllMutexes,btmutex.c,223,int,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,int sqlite3BtreeHoldsAllMutexes(sqlite3 *db){, True
+sqlite3BtreeHoldsMutex,btmutex.c,161,int,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,int sqlite3BtreeHoldsMutex(Btree *p){, True
+sqlite3BtreeLeave,btmutex.c,143,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeLeave(Btree *p){, True
+sqlite3BtreeLeaveAll,btmutex.c,212,void,Concurrency,Mutex Operations,Critical,Medium,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeLeaveAll(sqlite3 *db){, True
+sqlite3BtreeLeaveCursor,btmutex.c,303,void,Concurrency,Mutex Operations,Critical,High,True,False,Mutex Operations function in Concurrency subsystem,void sqlite3BtreeLeaveCursor(BtCursor *pCur){, True
 getLockingMode,pragma.c,110,int,Configuration,PRAGMA Commands,Critical,Low,False,True,PRAGMA Commands function in Configuration subsystem,static int getLockingMode(const char *z){, False
 setAllPagerFlags,pragma.c,241,void,Configuration,PRAGMA Commands,Critical,Medium,False,True,PRAGMA Commands function in Configuration subsystem,static void setAllPagerFlags(sqlite3 *db){, False
 jsonParseFree,json.c,405,void,Extension,JSON Functions,Critical,Low,False,True,JSON Functions function in Extension subsystem,static void jsonParseFree(JsonParse*);, False

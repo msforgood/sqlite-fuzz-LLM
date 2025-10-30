@@ -49,6 +49,9 @@
 #include "btree_commit_harness.h"
 #include "btree_droptable_harness.h"
 #include "btree_batch_simple_harness.h"
+#include "btree_commitphase2_harness.h"
+#include "btree_pagesize_harness.h"
+#include "btree_mutex_batch_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -1720,6 +1723,16 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == VULN_MODE_FORMAT_STRING_ATTACK ) packetSize = sizeof(format_string_packet);
   else if( cx.fuzzMode == VULN_MODE_WAL_RACE_CONDITION ) packetSize = sizeof(wal_race_packet);
   else if( cx.fuzzMode == VULN_MODE_MEMORY_PRESSURE ) packetSize = sizeof(memory_pressure_packet);
+  
+  /* Direct harness calls for new high-impact functions */
+  if( data[0] == 206 ) {
+    return test_sqlite3BtreeCommitPhaseTwo(data, size);
+  } else if( data[0] == 207 ) {
+    return test_sqlite3BtreeSetPageSize(data, size);
+  } else if( data[0] == 208 ) {
+    return test_batch_btree_mutex_functions(data, size);
+  }
+  
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
