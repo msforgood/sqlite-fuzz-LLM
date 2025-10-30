@@ -33,6 +33,7 @@
 #include "parser_advanced_harness.h"
 #include "parser_expr_harness.h"
 #include "vdbe_value_api_harness.h"
+#include "vdbe_result_api_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -152,7 +153,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 80; /* 0-79 valid modes, added VDBE Value API harnesses */
+  cx.fuzzMode = fuzzSelector % 83; /* 0-82 valid modes, added VDBE Result API harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -424,6 +425,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pVifPacket->valueListSize;
     cx.allocMode = pVifPacket->scenario;
     cx.corruptionSeed = pVifPacket->iteratorPosition;
+  } else if( cx.fuzzMode == FUZZ_MODE_RESULT_TEXT16 && size >= sizeof(ResultText16Packet) ) {
+    const ResultText16Packet *pRt16Packet = (const ResultText16Packet*)data;
+    cx.targetPgno = pRt16Packet->textLength;
+    cx.allocMode = pRt16Packet->scenario;
+    cx.corruptionSeed = pRt16Packet->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_RESULT_ZEROBLOB64 && size >= sizeof(ResultZeroblob64Packet) ) {
+    const ResultZeroblob64Packet *pRzb64Packet = (const ResultZeroblob64Packet*)data;
+    cx.targetPgno = pRzb64Packet->blobSize;
+    cx.allocMode = pRzb64Packet->scenario;
+    cx.corruptionSeed = pRzb64Packet->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_STMT_SCANSTATUS && size >= sizeof(StmtScanstatusPacket) ) {
+    const StmtScanstatusPacket *pSsPacket = (const StmtScanstatusPacket*)data;
+    cx.targetPgno = pSsPacket->scanIndex;
+    cx.allocMode = pSsPacket->scenario;
+    cx.corruptionSeed = pSsPacket->flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -564,6 +580,18 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const FreeP4Packet*)data)->scenario & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_ASSERT_FIELD_COUNT) ?
     ((const AssertFieldCountPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VALUE_BYTES16) ?
+    ((const ValueBytes16Packet*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VALUE_NOCHANGE) ?
+    ((const ValueNochangePacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_VTAB_IN_FIRST) ?
+    ((const VtabInFirstPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_RESULT_TEXT16) ?
+    ((const ResultText16Packet*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_RESULT_ZEROBLOB64) ?
+    ((const ResultZeroblob64Packet*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_STMT_SCANSTATUS) ?
+    ((const StmtScanstatusPacket*)data)->scenario & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -1051,6 +1079,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute vtab in first fuzzing */
     fuzz_vtab_in_first(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_RESULT_TEXT16 && size >= sizeof(ResultText16Packet) ) {
+    const ResultText16Packet *pRt16Packet = (const ResultText16Packet*)data;
+    cx.execCnt = (pRt16Packet->textData[0] % 8) + 1;
+    
+    /* Execute result text16 fuzzing */
+    fuzz_result_text16(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_RESULT_ZEROBLOB64 && size >= sizeof(ResultZeroblob64Packet) ) {
+    const ResultZeroblob64Packet *pRzb64Packet = (const ResultZeroblob64Packet*)data;
+    cx.execCnt = (pRzb64Packet->testPattern % 6) + 1;
+    
+    /* Execute result zeroblob64 fuzzing */
+    fuzz_result_zeroblob64(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_STMT_SCANSTATUS && size >= sizeof(StmtScanstatusPacket) ) {
+    const StmtScanstatusPacket *pSsPacket = (const StmtScanstatusPacket*)data;
+    cx.execCnt = (pSsPacket->testData[0] % 6) + 1;
+    
+    /* Execute stmt scanstatus fuzzing */
+    fuzz_stmt_scanstatus(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;

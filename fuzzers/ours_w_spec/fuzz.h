@@ -79,6 +79,9 @@
 #define FUZZ_MODE_VALUE_BYTES16 0x55  /* Target sqlite3_value_bytes16 specifically */
 #define FUZZ_MODE_VALUE_NOCHANGE 0x56  /* Target sqlite3_value_nochange specifically */
 #define FUZZ_MODE_VTAB_IN_FIRST 0x57  /* Target sqlite3_vtab_in_first specifically */
+#define FUZZ_MODE_RESULT_TEXT16 0x58  /* Target sqlite3_result_text16 specifically */
+#define FUZZ_MODE_RESULT_ZEROBLOB64 0x59  /* Target sqlite3_result_zeroblob64 specifically */
+#define FUZZ_MODE_STMT_SCANSTATUS 0x5A  /* Target sqlite3_stmt_scanstatus specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

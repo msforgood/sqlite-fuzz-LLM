@@ -4215,19 +4215,19 @@ sqlite3_result_null,vdbeapi.c,510,void,VDBE,API Interface,Low,Medium,True,False,
 sqlite3_result_pointer,vdbeapi.c,517,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_result_pointer(, False
 sqlite3_result_subtype,vdbeapi.c,536,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,"void sqlite3_result_subtype(sqlite3_context *pCtx, unsigned int eSubtype){", False
 sqlite3_result_text,vdbeapi.c,558,void,VDBE,API Interface,Low,Medium,True,False,API Interface function in VDBE subsystem,void sqlite3_result_text(, False
-sqlite3_result_text16,vdbeapi.c,600,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_result_text16(, False
+sqlite3_result_text16,vdbeapi.c,600,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_result_text16(, True
 sqlite3_result_text16be,vdbeapi.c,609,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_result_text16be(, False
 sqlite3_result_text16le,vdbeapi.c,618,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_result_text16le(, False
 sqlite3_result_text64,vdbeapi.c,573,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_result_text64(, False
 sqlite3_result_value,vdbeapi.c,628,void,VDBE,API Interface,Low,Medium,True,False,API Interface function in VDBE subsystem,"void sqlite3_result_value(sqlite3_context *pCtx, sqlite3_value *pValue){", False
 sqlite3_result_zeroblob,vdbeapi.c,646,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,"void sqlite3_result_zeroblob(sqlite3_context *pCtx, int n){", False
-sqlite3_result_zeroblob64,vdbeapi.c,649,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,"int sqlite3_result_zeroblob64(sqlite3_context *pCtx, u64 n){", False
+sqlite3_result_zeroblob64,vdbeapi.c,649,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,"int sqlite3_result_zeroblob64(sqlite3_context *pCtx, u64 n){", True
 sqlite3_set_auxdata,vdbeapi.c,1182,void,VDBE,API Interface,Low,Medium,True,False,API Interface function in VDBE subsystem,void sqlite3_set_auxdata(, False
 sqlite3_stmt_busy,vdbeapi.c,2044,int,VDBE,API Interface,Low,Medium,True,False,API Interface function in VDBE subsystem,int sqlite3_stmt_busy(sqlite3_stmt *pStmt){, False
 sqlite3_stmt_explain,vdbeapi.c,2008,int,VDBE,API Interface,Low,Medium,True,False,API Interface function in VDBE subsystem,"int sqlite3_stmt_explain(sqlite3_stmt *pStmt, int eMode){", False
 sqlite3_stmt_isexplain,vdbeapi.c,2001,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,int sqlite3_stmt_isexplain(sqlite3_stmt *pStmt){, False
 sqlite3_stmt_readonly,vdbeapi.c,1993,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,int sqlite3_stmt_readonly(sqlite3_stmt *pStmt){, False
-sqlite3_stmt_scanstatus,vdbeapi.c,2581,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,int sqlite3_stmt_scanstatus(, False
+sqlite3_stmt_scanstatus,vdbeapi.c,2581,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,int sqlite3_stmt_scanstatus(, True
 sqlite3_stmt_scanstatus_reset,vdbeapi.c,2593,void,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,void sqlite3_stmt_scanstatus_reset(sqlite3_stmt *pStmt){, False
 sqlite3_stmt_scanstatus_v2,vdbeapi.c,2427,int,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,int sqlite3_stmt_scanstatus_v2(, False
 sqlite3_stmt_scanstatus_v2,vdbeapi.c,2587,return,VDBE,API Interface,Low,High,True,False,API Interface function in VDBE subsystem,"return sqlite3_stmt_scanstatus_v2(pStmt, iScan, iScanStatusOp, 0, pOut);", False
