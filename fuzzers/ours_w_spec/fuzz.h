@@ -86,6 +86,12 @@
 #define FUZZ_MODE_BTREE_CLEAR_CURSOR 0x5C  /* Target sqlite3BtreeClearCursor specifically */
 #define FUZZ_MODE_BTREE_RELEASE_PAGES 0x5D  /* Target btreeReleaseAllCursorPages specifically */
 #define FUZZ_MODE_QUERY_SHARED_CACHE_LOCK 0x5E  /* Target querySharedCacheTableLock specifically */
+#define FUZZ_MODE_BTREE_PARSE_CELL_PTR 0x5F  /* Target btreeParseCellPtr specifically */
+#define FUZZ_MODE_CURSOR_ON_LAST_PAGE 0x60  /* Target cursorOnLastPage specifically */
+#define FUZZ_MODE_BTREE_CURSOR_HAS_MOVED 0x61  /* Target sqlite3BtreeCursorHasMoved specifically */
+#define FUZZ_MODE_BTREE_INSERT 0x62  /* Target sqlite3BtreeInsert specifically */
+#define FUZZ_MODE_BTREE_INDEX_MOVETO 0x63  /* Target sqlite3BtreeIndexMoveto specifically */
+#define FUZZ_MODE_CLEAR_SHARED_CACHE_LOCKS 0x64  /* Target clearAllSharedCacheTableLocks specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

@@ -35,6 +35,7 @@
 #include "vdbe_value_api_harness.h"
 #include "vdbe_result_api_harness.h"
 #include "btree_trans_mgmt_harness.h"
+#include "btree_advanced_ops_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -154,7 +155,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 87; /* 0-86 valid modes, added B-Tree Transaction Management harnesses */
+  cx.fuzzMode = fuzzSelector % 93; /* 0-92 valid modes, added B-Tree Advanced Operations harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -461,6 +462,36 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pQsclPacket->tableNumber;
     cx.allocMode = pQsclPacket->scenario;
     cx.corruptionSeed = pQsclPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR && size >= sizeof(BtreeParseCellPacket) ) {
+    const BtreeParseCellPacket *pBpcpPacket = (const BtreeParseCellPacket*)data;
+    cx.targetPgno = pBpcpPacket->cellOffset;
+    cx.allocMode = pBpcpPacket->pageType;
+    cx.corruptionSeed = pBpcpPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_CURSOR_ON_LAST_PAGE && size >= sizeof(CursorLastPagePacket) ) {
+    const CursorLastPagePacket *pClpPacket = (const CursorLastPagePacket*)data;
+    cx.targetPgno = pClpPacket->currentPage;
+    cx.allocMode = pClpPacket->scenario;
+    cx.corruptionSeed = pClpPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_HAS_MOVED && size >= sizeof(CursorMovedPacket) ) {
+    const CursorMovedPacket *pCmPacket = (const CursorMovedPacket*)data;
+    cx.targetPgno = pCmPacket->pageNumber;
+    cx.allocMode = pCmPacket->scenario;
+    cx.corruptionSeed = pCmPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_INSERT && size >= sizeof(BtreeInsertPacket) ) {
+    const BtreeInsertPacket *pBiPacket = (const BtreeInsertPacket*)data;
+    cx.targetPgno = pBiPacket->dataSize;
+    cx.allocMode = pBiPacket->scenario;
+    cx.corruptionSeed = pBiPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_INDEX_MOVETO && size >= sizeof(BtreeIndexMovetoPacket) ) {
+    const BtreeIndexMovetoPacket *pBimPacket = (const BtreeIndexMovetoPacket*)data;
+    cx.targetPgno = pBimPacket->keyFields;
+    cx.allocMode = pBimPacket->scenario;
+    cx.corruptionSeed = pBimPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_CLEAR_SHARED_CACHE_LOCKS && size >= sizeof(SharedCacheClearPacket) ) {
+    const SharedCacheClearPacket *pSccPacket = (const SharedCacheClearPacket*)data;
+    cx.targetPgno = pSccPacket->lockCount;
+    cx.allocMode = pSccPacket->scenario;
+    cx.corruptionSeed = pSccPacket->flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -621,6 +652,18 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const BtreeReleaseAllPagesPacket*)data)->scenario & 1 :
     (cx.fuzzMode == FUZZ_MODE_QUERY_SHARED_CACHE_LOCK) ?
     ((const QuerySharedCacheLockPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR) ?
+    ((const BtreeParseCellPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CURSOR_ON_LAST_PAGE) ?
+    ((const CursorLastPagePacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_HAS_MOVED) ?
+    ((const CursorMovedPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_INSERT) ?
+    ((const BtreeInsertPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_INDEX_MOVETO) ?
+    ((const BtreeIndexMovetoPacket*)data)->flags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_CLEAR_SHARED_CACHE_LOCKS) ?
+    ((const SharedCacheClearPacket*)data)->flags & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -1150,6 +1193,42 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute query shared cache lock fuzzing */
     fuzz_query_shared_cache_lock(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR && size >= sizeof(BtreeParseCellPacket) ) {
+    const BtreeParseCellPacket *pBpcpPacket = (const BtreeParseCellPacket*)data;
+    cx.execCnt = (pBpcpPacket->cellSize % 8) + 1;
+    
+    /* Execute B-Tree parse cell pointer fuzzing */
+    fuzz_btree_parse_cell_ptr(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_CURSOR_ON_LAST_PAGE && size >= sizeof(CursorLastPagePacket) ) {
+    const CursorLastPagePacket *pClpPacket = (const CursorLastPagePacket*)data;
+    cx.execCnt = (pClpPacket->testData[0] % 8) + 1;
+    
+    /* Execute cursor on last page fuzzing */
+    fuzz_cursor_on_last_page(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_HAS_MOVED && size >= sizeof(CursorMovedPacket) ) {
+    const CursorMovedPacket *pCmPacket = (const CursorMovedPacket*)data;
+    cx.execCnt = (pCmPacket->validationData[0] % 10) + 1;
+    
+    /* Execute B-Tree cursor has moved fuzzing */
+    fuzz_sqlite3_btree_cursor_has_moved(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_INSERT && size >= sizeof(BtreeInsertPacket) ) {
+    const BtreeInsertPacket *pBiPacket = (const BtreeInsertPacket*)data;
+    cx.execCnt = (pBiPacket->testParams[0] % 12) + 1;
+    
+    /* Execute B-Tree insert fuzzing */
+    fuzz_sqlite3_btree_insert(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_INDEX_MOVETO && size >= sizeof(BtreeIndexMovetoPacket) ) {
+    const BtreeIndexMovetoPacket *pBimPacket = (const BtreeIndexMovetoPacket*)data;
+    cx.execCnt = (pBimPacket->searchParams[0] % 10) + 1;
+    
+    /* Execute B-Tree index moveto fuzzing */
+    fuzz_sqlite3_btree_index_moveto(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_CLEAR_SHARED_CACHE_LOCKS && size >= sizeof(SharedCacheClearPacket) ) {
+    const SharedCacheClearPacket *pSccPacket = (const SharedCacheClearPacket*)data;
+    cx.execCnt = (pSccPacket->testData[0] % 8) + 1;
+    
+    /* Execute clear shared cache locks fuzzing */
+    fuzz_clear_all_shared_cache_locks(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
