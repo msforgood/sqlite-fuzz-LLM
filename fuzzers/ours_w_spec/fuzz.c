@@ -46,6 +46,9 @@
 #include "string_processing_harness.h"
 #include "utility_batch_harness.h"
 #include "crash_hunting_harness.h"
+#include "btree_commit_harness.h"
+#include "btree_droptable_harness.h"
+#include "btree_batch_simple_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
