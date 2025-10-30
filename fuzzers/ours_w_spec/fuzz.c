@@ -39,6 +39,7 @@
 #include "high_impact_ops_harness.h"
 #include "btree_core_ops_harness.h"
 #include "btree_api_advanced_harness.h"
+#include "vulnerability_detection_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -158,7 +159,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 114; /* 0-113 valid modes, added B-Tree Advanced API harnesses */
+  cx.fuzzMode = fuzzSelector % 122; /* 0-121 valid modes, added Vulnerability Detection harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -600,6 +601,31 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pCaPacket->iTable;
     cx.allocMode = pCaPacket->cursorMode;
     cx.corruptionSeed = pCaPacket->scenario;
+  } else if( cx.fuzzMode == VULN_MODE_BTREE_INTEGER_OVERFLOW && size >= sizeof(btree_overflow_packet) ) {
+    const btree_overflow_packet *pVulnPacket = (const btree_overflow_packet*)data;
+    cx.targetPgno = pVulnPacket->freelist_count;
+    cx.allocMode = pVulnPacket->corruption_type;
+    cx.corruptionSeed = pVulnPacket->scenario;
+  } else if( cx.fuzzMode == VULN_MODE_VDBE_MEMORY_UAF && size >= sizeof(vdbe_uaf_packet) ) {
+    const vdbe_uaf_packet *pUafPacket = (const vdbe_uaf_packet*)data;
+    cx.targetPgno = pUafPacket->initial_size;
+    cx.allocMode = pUafPacket->mem_type;
+    cx.corruptionSeed = pUafPacket->scenario;
+  } else if( cx.fuzzMode == VULN_MODE_FORMAT_STRING_ATTACK && size >= sizeof(format_string_packet) ) {
+    const format_string_packet *pFmtPacket = (const format_string_packet*)data;
+    cx.targetPgno = pFmtPacket->string_length;
+    cx.allocMode = pFmtPacket->injection_point;
+    cx.corruptionSeed = pFmtPacket->scenario;
+  } else if( cx.fuzzMode == VULN_MODE_WAL_RACE_CONDITION && size >= sizeof(wal_race_packet) ) {
+    const wal_race_packet *pRacePacket = (const wal_race_packet*)data;
+    cx.targetPgno = pRacePacket->operation_count;
+    cx.allocMode = pRacePacket->checkpoint_mode;
+    cx.corruptionSeed = pRacePacket->scenario;
+  } else if( cx.fuzzMode == VULN_MODE_MEMORY_PRESSURE && size >= sizeof(memory_pressure_packet) ) {
+    const memory_pressure_packet *pMemPacket = (const memory_pressure_packet*)data;
+    cx.targetPgno = pMemPacket->alloc_count;
+    cx.allocMode = pMemPacket->failure_point;
+    cx.corruptionSeed = pMemPacket->scenario;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -1463,6 +1489,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute SQLite3 B-Tree cursor API fuzzing */
     fuzz_sqlite3_btree_cursor_api(&cx, data, size);
+  } else if( cx.fuzzMode == VULN_MODE_BTREE_INTEGER_OVERFLOW && size >= sizeof(btree_overflow_packet) ) {
+    /* Execute B-Tree integer overflow vulnerability detection */
+    fuzz_btree_allocate_page_vulnerability(&cx, data, size);
+  } else if( cx.fuzzMode == VULN_MODE_VDBE_MEMORY_UAF && size >= sizeof(vdbe_uaf_packet) ) {
+    /* Execute VDBE memory Use-After-Free vulnerability detection */
+    fuzz_vdbe_memory_uaf_vulnerability(&cx, data, size);
+  } else if( cx.fuzzMode == VULN_MODE_FORMAT_STRING_ATTACK && size >= sizeof(format_string_packet) ) {
+    /* Execute format string attack vulnerability detection */
+    fuzz_format_string_attack(&cx, data, size);
+  } else if( cx.fuzzMode == VULN_MODE_WAL_RACE_CONDITION && size >= sizeof(wal_race_packet) ) {
+    /* Execute WAL race condition vulnerability detection */
+    fuzz_wal_race_condition(&cx, data, size);
+  } else if( cx.fuzzMode == VULN_MODE_MEMORY_PRESSURE && size >= sizeof(memory_pressure_packet) ) {
+    /* Execute memory pressure vulnerability detection */
+    fuzz_memory_pressure(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1558,6 +1599,11 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COUNT ) packetSize = sizeof(btree_count_packet);
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CREATE_TABLE ) packetSize = sizeof(btree_create_table_packet);
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_API ) packetSize = sizeof(btree_cursor_api_packet);
+  else if( cx.fuzzMode == VULN_MODE_BTREE_INTEGER_OVERFLOW ) packetSize = sizeof(btree_overflow_packet);
+  else if( cx.fuzzMode == VULN_MODE_VDBE_MEMORY_UAF ) packetSize = sizeof(vdbe_uaf_packet);
+  else if( cx.fuzzMode == VULN_MODE_FORMAT_STRING_ATTACK ) packetSize = sizeof(format_string_packet);
+  else if( cx.fuzzMode == VULN_MODE_WAL_RACE_CONDITION ) packetSize = sizeof(wal_race_packet);
+  else if( cx.fuzzMode == VULN_MODE_MEMORY_PRESSURE ) packetSize = sizeof(memory_pressure_packet);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

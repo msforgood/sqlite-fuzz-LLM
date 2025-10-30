@@ -13,6 +13,13 @@
 #include <stdlib.h>
 #include "sqlite3.h"
 
+/* Forward declarations for vulnerability detection harness */
+struct btree_overflow_packet;
+struct vdbe_uaf_packet;
+struct format_string_packet;
+struct wal_race_packet;
+struct memory_pressure_packet;
+
 /* Fuzzing mode selector values */
 #define FUZZ_MODE_BTREE_ALLOC    0x01  /* Target allocateBtreePage specifically */
 #define FUZZ_MODE_FREELIST_FULL  0x02  /* Test freelist scenarios */
@@ -119,6 +126,16 @@
 #define FUZZ_MODE_SQLITE3_BTREE_COUNT 0x77            /* Target sqlite3BtreeCount specifically */
 #define FUZZ_MODE_SQLITE3_BTREE_CREATE_TABLE 0x78     /* Target sqlite3BtreeCreateTable specifically */
 #define FUZZ_MODE_SQLITE3_BTREE_CURSOR_API 0x79       /* Target sqlite3BtreeCursor API specifically */
+
+/* Vulnerability Detection Modes */
+#define VULN_MODE_BTREE_INTEGER_OVERFLOW    0x80      /* B-Tree allocateBtreePage integer overflow */
+#define VULN_MODE_VDBE_MEMORY_UAF          0x81       /* VDBE Memory Use-After-Free */
+#define VULN_MODE_FORMAT_STRING_ATTACK     0x82       /* sqlite3_mprintf format string attack */
+#define VULN_MODE_WAL_RACE_CONDITION       0x83       /* WAL checkpoint race condition */
+#define VULN_MODE_ASSERT_BYPASS            0x84       /* Assert bypass in release builds */
+#define VULN_MODE_MEMORY_PRESSURE          0x85       /* Memory allocation failure testing */
+#define VULN_MODE_CORRUPTED_DB_FILE        0x86       /* Corrupted database file testing */
+#define VULN_MODE_CHAINED_EXPLOIT          0x87       /* Multiple vulnerabilities chained */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
