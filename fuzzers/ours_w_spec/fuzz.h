@@ -64,6 +64,12 @@
 #define FUZZ_MODE_VDBE_MEM_SHALLOW_COPY 0x46  /* Target sqlite3VdbeMemShallowCopy specifically */
 #define FUZZ_MODE_VDBE_MEM_STRINGIFY 0x47  /* Target sqlite3VdbeMemStringify specifically */
 #define FUZZ_MODE_VDBE_MEM_VALID_STR_REP 0x48  /* Target sqlite3VdbeMemValidStrRep specifically */
+#define FUZZ_MODE_BTREE_CURSOR_WITH_LOCK 0x49  /* Target btreeCursorWithLock specifically */
+#define FUZZ_MODE_BTREE_LAST          0x4A  /* Target btreeLast specifically */
+#define FUZZ_MODE_BTREE_NEXT          0x4B  /* Target btreeNext specifically */
+#define FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL 0x4C  /* Target btreeOverwriteOverflowCell specifically */
+#define FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX 0x4D  /* Target btreeParseCellPtrIndex specifically */
+#define FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD 0x4E  /* Target btreeParseCellPtrNoPayload specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
@@ -273,6 +279,45 @@ typedef struct PagerFixMaplimitPacket {
   uint8_t testData[12];      /* Test parameters */
 } PagerFixMaplimitPacket;
 
+/* Input packet for btreeCursorWithLock fuzzing */
+typedef struct BtreeCursorWithLockPacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t wrFlag;            /* Write flag (0=READ, 1=WRITE) */
+  uint8_t lockLevel;         /* Lock level simulation */
+  uint8_t shareMode;         /* Share mode selector */
+  uint32_t iTable;           /* Table root page number */
+  uint32_t keyFields;        /* Number of key fields */
+  uint32_t transactionState; /* Transaction state simulation */
+  uint32_t btreeFlags;       /* Btree flags */
+  uint8_t keyInfoData[12];   /* KeyInfo structure data */
+} BtreeCursorWithLockPacket;
+
+/* Input packet for btreeLast fuzzing */
+typedef struct BtreeLastPacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t cursorState;       /* Initial cursor state */
+  uint8_t pageType;          /* Page type selector */
+  uint8_t cursorFlags;       /* Cursor flags */
+  uint32_t rootPage;         /* Root page number */
+  uint32_t treeDepth;        /* Tree depth simulation */
+  uint32_t pageCount;        /* Page count in tree */
+  uint32_t corruptionMask;   /* Corruption pattern */
+  uint8_t testData[12];      /* Additional test parameters */
+} BtreeLastPacket;
+
+/* Input packet for btreeNext fuzzing */
+typedef struct BtreeNextPacket {
+  uint8_t scenario;          /* Test scenario selector */
+  uint8_t cursorState;       /* Initial cursor state */
+  uint8_t pagePosition;      /* Position on page */
+  uint8_t cursorFlags;       /* Cursor flags */
+  uint32_t cellIndex;        /* Current cell index */
+  uint32_t skipNext;         /* Skip next value */
+  uint32_t pageLayout;       /* Page layout simulation */
+  uint32_t leafInternal;     /* Leaf/internal page selector */
+  uint8_t navigationData[12]; /* Navigation test data */
+} BtreeNextPacket;
+
 /* Core function declarations */
 int progress_handler(void *pClientData);
 int exec_handler(void *pClientData, int argc, char **argv, char **namev);
@@ -290,6 +335,7 @@ sqlite3_int64 timeOfDay(void);
 #include "query_where_harness.h"
 #include "vdbe_record_harness.h"
 #include "vdbe_memory_advanced_harness.h"
+#include "btree_cursor_nav_harness.h"
 
 /* Debug and utility functions */
 void ossfuzz_set_debug_flags(unsigned x);

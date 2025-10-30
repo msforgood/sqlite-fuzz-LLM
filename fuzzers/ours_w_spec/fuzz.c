@@ -24,6 +24,13 @@
 #include "vdbe_auxiliary_harness.h"
 #include "btree_cursor_ops_harness.h"
 #include "vdbe_auxiliary_extended_harness.h"
+#include "btree_cursor_nav_harness.h"
+#include "btree_overflow_harness.h"
+#include "btree_meta_harness.h"
+#include "vdbe_memory_advanced_harness.h"
+#include "vdbe_record_harness.h"
+#include "query_where_harness.h"
+#include "parser_advanced_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -301,6 +308,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pWlabiPacket->indexColumnCount;
     cx.allocMode = pWlabiPacket->scenario;
     cx.corruptionSeed = pWlabiPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK && size >= sizeof(BtreeCursorWithLockPacket) ) {
+    const BtreeCursorWithLockPacket *pBclPacket = (const BtreeCursorWithLockPacket*)data;
+    cx.targetPgno = pBclPacket->iTable;
+    cx.allocMode = pBclPacket->wrFlag;
+    cx.corruptionSeed = pBclPacket->btreeFlags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST && size >= sizeof(BtreeLastPacket) ) {
+    const BtreeLastPacket *pBlPacket = (const BtreeLastPacket*)data;
+    cx.targetPgno = pBlPacket->rootPage;
+    cx.allocMode = pBlPacket->cursorState;
+    cx.corruptionSeed = pBlPacket->corruptionMask;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT && size >= sizeof(BtreeNextPacket) ) {
+    const BtreeNextPacket *pBnPacket = (const BtreeNextPacket*)data;
+    cx.targetPgno = pBnPacket->cellIndex;
+    cx.allocMode = pBnPacket->cursorState;
+    cx.corruptionSeed = pBnPacket->pageLayout;
   } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_DEBUG && size >= sizeof(RecordCompareDebugPacket) ) {
     const RecordCompareDebugPacket *pRcdPacket = (const RecordCompareDebugPacket*)data;
     cx.targetPgno = pRcdPacket->nKey1;
@@ -341,6 +363,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pMvsrPacket->str_length;
     cx.allocMode = pMvsrPacket->scenario;
     cx.corruptionSeed = pMvsrPacket->corruption_flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL && size >= sizeof(BtreeOverwriteOverflowCellPacket) ) {
+    const BtreeOverwriteOverflowCellPacket *pBoocPacket = (const BtreeOverwriteOverflowCellPacket*)data;
+    cx.targetPgno = pBoocPacket->dataSize;
+    cx.allocMode = pBoocPacket->scenario;
+    cx.corruptionSeed = pBoocPacket->zeroTail;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX && size >= sizeof(BtreeParseCellPtrIndexPacket) ) {
+    const BtreeParseCellPtrIndexPacket *pBpcpiPacket = (const BtreeParseCellPtrIndexPacket*)data;
+    cx.targetPgno = pBpcpiPacket->cellSize;
+    cx.allocMode = pBpcpiPacket->scenario;
+    cx.corruptionSeed = pBpcpiPacket->payloadSize;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD && size >= sizeof(BtreeParseCellPtrNoPayloadPacket) ) {
+    const BtreeParseCellPtrNoPayloadPacket *pBpcpnpPacket = (const BtreeParseCellPtrNoPayloadPacket*)data;
+    cx.targetPgno = pBpcpnpPacket->keyValue;
+    cx.allocMode = pBpcpnpPacket->scenario;
+    cx.corruptionSeed = pBpcpnpPacket->varintBytes;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -455,6 +492,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const WhereInfoFreePacket*)data)->sortedFlag & 1 :
     (cx.fuzzMode == FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX) ?
     ((const WhereLoopAddBtreeIndexPacket*)data)->whereFlags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK) ?
+    ((const BtreeCursorWithLockPacket*)data)->wrFlag == 0 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_LAST) ?
+    ((const BtreeLastPacket*)data)->cursorFlags & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_NEXT) ?
+    ((const BtreeNextPacket*)data)->cursorFlags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_CHECK_ACTIVE_CNT) ?
     ((const VdbeCheckActiveCntPacket*)data)->corruption_flags & 1 :
     (cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL) ?
@@ -830,6 +873,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute WHERE loop add B-Tree index fuzzing */
     fuzz_where_loop_add_btree_index(&cx, pWlabiPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK && size >= sizeof(BtreeCursorWithLockPacket) ) {
+    const BtreeCursorWithLockPacket *pBclPacket = (const BtreeCursorWithLockPacket*)data;
+    cx.execCnt = (pBclPacket->scenario % 30) + 1;
+    
+    /* Execute B-Tree cursor with lock fuzzing */
+    fuzz_btree_cursor_with_lock(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST && size >= sizeof(BtreeLastPacket) ) {
+    const BtreeLastPacket *pBlPacket = (const BtreeLastPacket*)data;
+    cx.execCnt = (pBlPacket->scenario % 25) + 1;
+    
+    /* Execute B-Tree last record positioning fuzzing */
+    fuzz_btree_last(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT && size >= sizeof(BtreeNextPacket) ) {
+    const BtreeNextPacket *pBnPacket = (const BtreeNextPacket*)data;
+    cx.execCnt = (pBnPacket->scenario % 35) + 1;
+    
+    /* Execute B-Tree next record navigation fuzzing */
+    fuzz_btree_next(&cx, data, size);
   } else if( cx.fuzzMode == FUZZ_MODE_VDBE_RECORD_COMPARE_DEBUG && size >= sizeof(RecordCompareDebugPacket) ) {
     const RecordCompareDebugPacket *pRcdPacket = (const RecordCompareDebugPacket*)data;
     cx.execCnt = (pRcdPacket->keyData[0] % 50) + 1;
@@ -878,6 +939,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE memory valid string rep fuzzing */
     fuzz_vdbe_mem_valid_str_rep(&cx, pMvsrPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL && size >= sizeof(BtreeOverwriteOverflowCellPacket) ) {
+    const BtreeOverwriteOverflowCellPacket *pBoocPacket = (const BtreeOverwriteOverflowCellPacket*)data;
+    cx.execCnt = (pBoocPacket->payloadData[0] % 30) + 1;
+    
+    /* Execute B-Tree overwrite overflow cell fuzzing */
+    fuzz_btree_overwrite_overflow_cell(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX && size >= sizeof(BtreeParseCellPtrIndexPacket) ) {
+    const BtreeParseCellPtrIndexPacket *pBpcpiPacket = (const BtreeParseCellPtrIndexPacket*)data;
+    cx.execCnt = (pBpcpiPacket->cellData[0] % 25) + 1;
+    
+    /* Execute B-Tree parse cell ptr index fuzzing */
+    fuzz_btree_parse_cell_ptr_index(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD && size >= sizeof(BtreeParseCellPtrNoPayloadPacket) ) {
+    const BtreeParseCellPtrNoPayloadPacket *pBpcpnpPacket = (const BtreeParseCellPtrNoPayloadPacket*)data;
+    cx.execCnt = (pBpcpnpPacket->cellData[0] % 20) + 1;
+    
+    /* Execute B-Tree parse cell ptr no payload fuzzing */
+    fuzz_btree_parse_cell_ptr_no_payload(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -938,6 +1017,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_FREE_INDEX_INFO ) packetSize = sizeof(FreeIndexInfoPacket);
   else if( cx.fuzzMode == FUZZ_MODE_WHERE_INFO_FREE ) packetSize = sizeof(WhereInfoFreePacket);
   else if( cx.fuzzMode == FUZZ_MODE_WHERE_LOOP_ADD_BTREE_INDEX ) packetSize = sizeof(WhereLoopAddBtreeIndexPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK ) packetSize = sizeof(BtreeCursorWithLockPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST ) packetSize = sizeof(BtreeLastPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT ) packetSize = sizeof(BtreeNextPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL ) packetSize = sizeof(BtreeOverwriteOverflowCellPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX ) packetSize = sizeof(BtreeParseCellPtrIndexPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD ) packetSize = sizeof(BtreeParseCellPtrNoPayloadPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

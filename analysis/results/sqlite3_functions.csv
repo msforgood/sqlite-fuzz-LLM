@@ -28,14 +28,14 @@ btreeOverwriteCell,btree.c,9466,return,B-Tree,Index Management,Critical,Medium,F
 btreeOverwriteCell,btree.c,9518,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteCell(pCur, &x2);", True
 btreeOverwriteContent,btree.c,9225,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeOverwriteContent(, True
 btreeOverwriteContent,btree.c,9331,return,B-Tree,Index Management,Critical,High,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteContent(pPage, pCur->info.pPayload, pX,", True
-btreeOverwriteOverflowCell,btree.c,9335,return,B-Tree,Index Management,Critical,High,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteOverflowCell(pCur, pX);", False
+btreeOverwriteOverflowCell,btree.c,9335,return,B-Tree,Index Management,Critical,High,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteOverflowCell(pCur, pX);",True
 btreePageFromDbPage,btree.c,2355,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreePageFromDbPage(pDbPage, pgno, pBt);", False
 btreePagecount,btree.c,2364,Pgno,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static Pgno btreePagecount(BtShared *pBt){, False
 btreePagecount,btree.c,2369,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,return btreePagecount(p->pBt);, False
 btreeParseCell,btree.c,1386,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static void btreeParseCell(, False
 btreeParseCellPtr,btree.c,1259,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeParseCellPtr(, False
-btreeParseCellPtrIndex,btree.c,1347,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void btreeParseCellPtrIndex(, False
-btreeParseCellPtrNoPayload,btree.c,1242,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void btreeParseCellPtrNoPayload(, False
+btreeParseCellPtrIndex,btree.c,1347,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void btreeParseCellPtrIndex(,True
+btreeParseCellPtrNoPayload,btree.c,1242,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void btreeParseCellPtrNoPayload(,True
 btreePayloadToLocal,btree.c,1213,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreePayloadToLocal(MemPage *pPage, i64 nPayload){", False
 btreePrevious,btree.c,6447,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,return btreePrevious(pCur);, False
 btreeReleaseAllCursorPages,btree.c,690,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void btreeReleaseAllCursorPages(BtCursor *pCur){, False

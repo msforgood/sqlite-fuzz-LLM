@@ -1,0 +1,69 @@
+{
+  "target": { 
+    "function": "btreeParseCellPtrIndex",
+    "fc": "btree_parse_002",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 1347
+  },
+  "struct_spec": {
+    "mem_page": {
+      "isInit": "u8",
+      "intKey": "u8",
+      "intKeyLeaf": "u8",
+      "leaf": "u8",
+      "pgno": "Pgno",
+      "nCell": "u16",
+      "nFree": "u16",
+      "cellOffset": "u16",
+      "pBt": "BtShared*",
+      "aData": "u8*"
+    },
+    "cell_info": {
+      "nKey": "i64",
+      "pPayload": "u8*",
+      "nPayload": "u32",
+      "nSize": "u16",
+      "nLocal": "u16"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "page_types": ["INDEX_INTERIOR", "INDEX_LEAF"],
+    "cell_size": {"min": 4, "max": 65535},
+    "payload_size": {"min": 0, "max": 1073741823},
+    "varint_max_bytes": 9,
+    "cell_header_min": 2
+  },
+  "fc_mapping": {
+    "source": "btree.c:1347",
+    "rationale": "btreeParseCellPtrIndex - Critical cell parsing for index pages",
+    "api_level": "internal",
+    "complexity": "high"
+  },
+  "constraints": {
+    "max_input_size": 8192,
+    "min_input_size": 32,
+    "endianness": "BE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true,
+    "requires_valid_page": true
+  },
+  "notes": {
+    "preconditions": [
+      "Page must be initialized",
+      "Page must be index (not table) type",
+      "Cell pointer must be within page bounds",
+      "Mutex must be held on BtShared"
+    ],
+    "side_effects": [
+      "CellInfo structure populated",
+      "No database modification"
+    ],
+    "error_conditions": [
+      "Cell extends past page boundary",
+      "Invalid varint encoding",
+      "Corrupt cell header"
+    ]
+  }
+}
