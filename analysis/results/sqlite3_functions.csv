@@ -121,7 +121,7 @@ sqlite3BtreeIncrblobCursor,btree.c,11454,void,B-Tree,Index Management,Critical,H
 sqlite3BtreeIndexMoveto,btree.c,6000,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeIndexMoveto(, True
 sqlite3BtreeInsert,btree.c,9370,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeInsert(, True
 sqlite3BtreeIntegerKey,btree.c,4893,i64,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,i64 sqlite3BtreeIntegerKey(BtCursor *pCur){, False
-sqlite3BtreeIntegrityCheck,btree.c,11102,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeIntegrityCheck(, False
+sqlite3BtreeIntegrityCheck,btree.c,11102,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeIntegrityCheck(, True
 sqlite3BtreeIsEmpty,btree.c,5675,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeIsEmpty(BtCursor *pCur, int *pRes){", False
 sqlite3BtreeIsInBackup,btree.c,11315,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeIsInBackup(Btree *p){, False
 sqlite3BtreeIsReadonly,btree.c,11507,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeIsReadonly(Btree *p){, False
@@ -129,20 +129,20 @@ sqlite3BtreeLast,btree.c,5733,int,B-Tree,Index Management,Critical,Medium,True,F
 sqlite3BtreeLastPage,btree.c,2367,Pgno,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,Pgno sqlite3BtreeLastPage(Btree *p){, False
 sqlite3BtreeLockTable,btree.c,11376,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeLockTable(Btree *p, int iTab, u8 isWriteLock){", False
 sqlite3BtreeMaxPageCount,btree.c,3151,Pgno,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"Pgno sqlite3BtreeMaxPageCount(Btree *p, Pgno mxPage){", False
-sqlite3BtreeMaxRecordSize,btree.c,4954,sqlite3_int64,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,sqlite3_int64 sqlite3BtreeMaxRecordSize(BtCursor *pCur){, False
+sqlite3BtreeMaxRecordSize,btree.c,4954,sqlite3_int64,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,sqlite3_int64 sqlite3BtreeMaxRecordSize(BtCursor *pCur){, True
 sqlite3BtreeNewDb,btree.c,3550,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeNewDb(Btree *p){, False
 sqlite3BtreeNext,btree.c,6334,return,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"return sqlite3BtreeNext(pCur, 0);", False
 sqlite3BtreeNext,btree.c,6345,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeNext(BtCursor *pCur, int flags){", False
 sqlite3BtreeOffset,btree.c,4917,i64,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,i64 sqlite3BtreeOffset(BtCursor *pCur){, False
 sqlite3BtreeOpen,btree.c,2528,int,B-Tree,Database Connection,Critical,Medium,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeOpen(, False
 sqlite3BtreePayload,btree.c,5309,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreePayload(BtCursor *pCur, u32 offset, u32 amt, void *pBuf){", False
-sqlite3BtreePayloadChecked,btree.c,5336,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreePayloadChecked(BtCursor *pCur, u32 offset, u32 amt, void *pBuf){", False
+sqlite3BtreePayloadChecked,btree.c,5336,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreePayloadChecked(BtCursor *pCur, u32 offset, u32 amt, void *pBuf){", True
 sqlite3BtreePayloadSize,btree.c,4934,u32,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,u32 sqlite3BtreePayloadSize(BtCursor *pCur){, False
 sqlite3BtreePrevious,btree.c,6437,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreePrevious(BtCursor *pCur, int flags){", False
 sqlite3BtreePutData,btree.c,11406,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreePutData(BtCursor *pCsr, u32 offset, u32 amt, void *z){", False
 sqlite3BtreeRollback,btree.c,4494,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeRollback(Btree *p, int tripCode, int writeOnly){", False
 sqlite3BtreeRowCountEst,btree.c,6251,i64,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,i64 sqlite3BtreeRowCountEst(BtCursor *pCur){, False
-sqlite3BtreeSavepoint,btree.c,4590,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSavepoint(Btree *p, int op, int iSavepoint){", False
+sqlite3BtreeSavepoint,btree.c,4590,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSavepoint(Btree *p, int op, int iSavepoint){", True
 sqlite3BtreeSchemaLocked,btree.c,11358,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeSchemaLocked(Btree *p){, False
 sqlite3BtreeSecureDelete,btree.c,3177,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSecureDelete(Btree *p, int newFlag){", True
 sqlite3BtreeSeekCount,btree.c,119,sqlite3_uint64,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,sqlite3_uint64 sqlite3BtreeSeekCount(Btree *pBt){, False
@@ -154,11 +154,11 @@ sqlite3BtreeSetPagerFlags,btree.c,3036,int,B-Tree,Index Management,Critical,High
 sqlite3BtreeSetSpillSize,btree.c,3002,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetSpillSize(Btree *p, int mxPage){", True
 sqlite3BtreeSetVersion,btree.c,11465,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeSetVersion(Btree *pBtree, int iVersion){", True
 sqlite3BtreeSharable,btree.c,11531,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeSharable(Btree *p){, True
-sqlite3BtreeTableMoveto,btree.c,5769,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeTableMoveto(, False
-sqlite3BtreeTransferRow,btree.c,9688,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeTransferRow(BtCursor *pDest, BtCursor *pSrc, i64 iKey){", False
-sqlite3BtreeTripAllCursors,btree.c,4443,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeTripAllCursors(Btree *pBtree, int errCode, int writeOnly){", False
+sqlite3BtreeTableMoveto,btree.c,5769,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeTableMoveto(, True
+sqlite3BtreeTransferRow,btree.c,9688,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeTransferRow(BtCursor *pDest, BtCursor *pSrc, i64 iKey){", True
+sqlite3BtreeTripAllCursors,btree.c,4443,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeTripAllCursors(Btree *pBtree, int errCode, int writeOnly){", True
 sqlite3BtreeTxnState,btree.c,11282,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeTxnState(Btree *p){, False
-sqlite3BtreeUpdateMeta,btree.c,10433,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeUpdateMeta(Btree *p, int idx, u32 iMeta){", False
+sqlite3BtreeUpdateMeta,btree.c,10433,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeUpdateMeta(Btree *p, int idx, u32 iMeta){", True
 sqlite3HeaderSizeBtree,btree.c,11514,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3HeaderSizeBtree(void){ return ROUND8(sizeof(MemPage)); }, False
 sqlite3PagerFilename,btree.c,11262,return,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,"return sqlite3PagerFilename(p->pBt->pPager, 1);", False
 sqlite3PagerJournalname,btree.c,11275,return,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,return sqlite3PagerJournalname(p->pBt->pPager);, False

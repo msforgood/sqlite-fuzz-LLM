@@ -54,6 +54,10 @@
 #include "btree_mutex_batch_harness.h"
 #include "btree_cursor_restore_harness.h"
 #include "btree_config_batch_harness.h"
+#include "btree_integrity_harness.h"
+#include "btree_advanced_batch_harness.h"
+#include "storage_simple_batch_harness.h"
+#include "vdbe_api_batch_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -1737,6 +1741,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     return test_sqlite3BtreeCursorRestore(data, size);
   } else if( data[0] == 210 ) {
     return test_batch_btree_config_functions(data, size);
+  } else if( data[0] == 211 ) {
+    return test_sqlite3BtreeIntegrityCheck(data, size);
+  } else if( data[0] == 212 ) {
+    return test_batch_btree_advanced_functions(data, size);
+  } else if( data[0] == 213 ) {
+    return test_batch_storage_simple_functions(data, size);
+  } else if( data[0] == 214 ) {
+    return test_batch_vdbe_api_functions(data, size);
   }
   
   if( size > packetSize ) {
