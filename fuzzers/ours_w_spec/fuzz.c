@@ -40,6 +40,7 @@
 #include "btree_core_ops_harness.h"
 #include "btree_api_advanced_harness.h"
 #include "vulnerability_detection_harness.h"
+#include "crash_hunting_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -159,7 +160,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 122; /* 0-121 valid modes, added Vulnerability Detection harnesses */
+  cx.fuzzMode = fuzzSelector % 131; /* 0-130 valid modes, added Crash Hunting harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -1504,6 +1505,33 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   } else if( cx.fuzzMode == VULN_MODE_MEMORY_PRESSURE && size >= sizeof(memory_pressure_packet) ) {
     /* Execute memory pressure vulnerability detection */
     fuzz_memory_pressure(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_MEMORY_STRESS && size >= sizeof(memory_stress_packet) ) {
+    /* Execute memory stress crash hunting */
+    fuzz_memory_stress_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_PARSER_OVERFLOW && size >= sizeof(parser_overflow_packet) ) {
+    /* Execute parser overflow crash hunting */
+    fuzz_parser_overflow_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_BOUNDARY_VIOLATION && size >= sizeof(boundary_violation_packet) ) {
+    /* Execute boundary violation crash hunting */
+    fuzz_boundary_violation_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_STRING_MANIPULATION ) {
+    /* Execute string manipulation crash hunting */
+    fuzz_string_manipulation_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_RECURSIVE_CALLS ) {
+    /* Execute recursive calls crash hunting */
+    fuzz_recursive_calls_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_MALFORMED_SQL ) {
+    /* Execute malformed SQL crash hunting */
+    fuzz_malformed_sql_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_INDEX_CORRUPTION ) {
+    /* Execute index corruption crash hunting */
+    fuzz_index_corruption_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_TRANSACTION_ABUSE ) {
+    /* Execute transaction abuse crash hunting */
+    fuzz_transaction_abuse_crash(&cx, data, size);
+  } else if( cx.fuzzMode == CRASH_MODE_BATCH_LOW_RISK ) {
+    /* Execute batch low-risk functions for coverage */
+    fuzz_batch_low_risk_functions(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;

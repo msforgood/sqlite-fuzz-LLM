@@ -106,6 +106,17 @@ struct memory_pressure_packet;
 #define FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE 0x69  /* Target sqlite3DbMallocSize specifically */
 #define FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS 0x6A  /* Target downgradeAllSharedCacheTableLocks specifically */
 
+/* Crash Hunting Modes - High Priority for Crash Discovery */
+#define CRASH_MODE_MEMORY_STRESS        0x90  /* 메모리 관리 스트레스 */
+#define CRASH_MODE_PARSER_OVERFLOW      0x91  /* 파서 오버플로우 */
+#define CRASH_MODE_BOUNDARY_VIOLATION   0x92  /* 경계 위반 */
+#define CRASH_MODE_STRING_MANIPULATION  0x93  /* 문자열 조작 */
+#define CRASH_MODE_RECURSIVE_CALLS      0x94  /* 재귀 호출 */
+#define CRASH_MODE_MALFORMED_SQL        0x95  /* 악형 SQL */
+#define CRASH_MODE_INDEX_CORRUPTION     0x96  /* 인덱스 손상 */
+#define CRASH_MODE_TRANSACTION_ABUSE    0x97  /* 트랜잭션 남용 */
+#define CRASH_MODE_BATCH_LOW_RISK       0x98  /* 대량 저위험 함수 */
+
 /* B-Tree Core Operations Functions */
 #define FUZZ_MODE_SQLITE3_BTREE_CURSOR_IS_VALID 0x6B  /* Target sqlite3BtreeCursorIsValid specifically */
 #define FUZZ_MODE_SQLITE3_BTREE_CLEAR_CACHE 0x6C      /* Target sqlite3BtreeClearCache specifically */
