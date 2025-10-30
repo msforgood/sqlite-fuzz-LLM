@@ -40,6 +40,11 @@
 #include "btree_core_ops_harness.h"
 #include "btree_api_advanced_harness.h"
 #include "vulnerability_detection_harness.h"
+#include "memory_harness.h"
+#include "btree_intensive_harness.h"
+#include "vdbe_execution_harness.h"
+#include "string_processing_harness.h"
+#include "utility_batch_harness.h"
 #include "crash_hunting_harness.h"
 
 /* Global debugging settings */
@@ -160,7 +165,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 131; /* 0-130 valid modes, added Crash Hunting harnesses */
+  cx.fuzzMode = fuzzSelector % 168; /* 0-130 valid modes, added Crash Hunting harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -1532,6 +1537,86 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   } else if( cx.fuzzMode == CRASH_MODE_BATCH_LOW_RISK ) {
     /* Execute batch low-risk functions for coverage */
     fuzz_batch_low_risk_functions(&cx, data, size);
+  
+  /* Advanced Memory Attack Modes */
+  } else if( cx.fuzzMode == MEMORY_MODE_HEAP_SPRAY && size >= sizeof(heap_spray_packet) ) {
+    fuzz_heap_spray_attack(&cx, data, size);
+  } else if( cx.fuzzMode == MEMORY_MODE_VDBE_MEMORY_STRESS && size >= sizeof(vdbe_memory_packet) ) {
+    fuzz_vdbe_memory_stress(&cx, data, size);
+  } else if( cx.fuzzMode == MEMORY_MODE_PAGE_ALLOC_STRESS && size >= sizeof(page_alloc_packet) ) {
+    fuzz_page_alloc_stress(&cx, data, size);
+  } else if( cx.fuzzMode == MEMORY_MODE_BUFFER_OVERFLOW && size >= 64 ) {
+    fuzz_buffer_overflow_attack(&cx, data, size);
+  } else if( cx.fuzzMode == MEMORY_MODE_INTEGER_OVERFLOW && size >= 16 ) {
+    fuzz_integer_overflow_attack(&cx, data, size);
+  } else if( cx.fuzzMode == MEMORY_MODE_DOUBLE_FREE && size >= 32 ) {
+    fuzz_double_free_attack(&cx, data, size);
+  } else if( cx.fuzzMode == MEMORY_MODE_USE_AFTER_FREE && size >= 32 ) {
+    fuzz_use_after_free_attack(&cx, data, size);
+  
+  /* B-Tree Intensive Attack Modes */
+  } else if( cx.fuzzMode == BTREE_MODE_PAGE_SPLIT_STRESS && size >= sizeof(page_split_packet) ) {
+    fuzz_page_split_stress(&cx, data, size);
+  } else if( cx.fuzzMode == BTREE_MODE_CURSOR_MANIPULATION && size >= sizeof(cursor_manipulation_packet) ) {
+    fuzz_cursor_manipulation(&cx, data, size);
+  } else if( cx.fuzzMode == BTREE_MODE_VACUUM_STRESS && size >= sizeof(vacuum_stress_packet) ) {
+    fuzz_vacuum_stress(&cx, data, size);
+  } else if( cx.fuzzMode == BTREE_MODE_MERGE_CORRUPTION && size >= 64 ) {
+    fuzz_btree_merge_corruption(&cx, data, size);
+  } else if( cx.fuzzMode == BTREE_MODE_REBALANCE_CHAOS && size >= 64 ) {
+    fuzz_rebalance_chaos(&cx, data, size);
+  } else if( cx.fuzzMode == BTREE_MODE_INDEX_CORRUPTION && size >= 32 ) {
+    fuzz_index_corruption(&cx, data, size);
+  } else if( cx.fuzzMode == BTREE_MODE_TRANSACTION_CHAOS && size >= 32 ) {
+    fuzz_transaction_chaos(&cx, data, size);
+  
+  /* VDBE Execution Attack Modes */
+  } else if( cx.fuzzMode == VDBE_MODE_OPCODE_CHAOS && size >= sizeof(opcode_chaos_packet) ) {
+    fuzz_vdbe_opcode_chaos(&cx, data, size);
+  } else if( cx.fuzzMode == VDBE_MODE_STACK_OVERFLOW && size >= sizeof(stack_overflow_packet) ) {
+    fuzz_vdbe_stack_overflow(&cx, data, size);
+  } else if( cx.fuzzMode == VDBE_MODE_TYPE_CONFUSION && size >= sizeof(type_confusion_packet) ) {
+    fuzz_vdbe_type_confusion(&cx, data, size);
+  } else if( cx.fuzzMode == VDBE_MODE_REGISTER_CORRUPTION && size >= 32 ) {
+    fuzz_vdbe_register_corruption(&cx, data, size);
+  } else if( cx.fuzzMode == VDBE_MODE_PROGRAM_MANIPULATION && size >= 16 ) {
+    fuzz_vdbe_program_manipulation(&cx, data, size);
+  } else if( cx.fuzzMode == VDBE_MODE_AGGREGATE_CHAOS && size >= 32 ) {
+    fuzz_vdbe_aggregate_chaos(&cx, data, size);
+  } else if( cx.fuzzMode == VDBE_MODE_RECURSIVE_EXPLOSION && size >= 16 ) {
+    fuzz_vdbe_recursive_explosion(&cx, data, size);
+  
+  /* String Processing Attack Modes */
+  } else if( cx.fuzzMode == STRING_MODE_UTF8_BOUNDARY && size >= sizeof(utf_boundary_packet) ) {
+    fuzz_utf8_boundary_attack(&cx, data, size);
+  } else if( cx.fuzzMode == STRING_MODE_PATTERN_EXPLOSION && size >= sizeof(pattern_explosion_packet) ) {
+    fuzz_pattern_explosion_attack(&cx, data, size);
+  } else if( cx.fuzzMode == STRING_MODE_FORMAT_OVERFLOW && size >= sizeof(format_overflow_packet) ) {
+    fuzz_format_overflow_attack(&cx, data, size);
+  } else if( cx.fuzzMode == STRING_MODE_UTF16_CONVERSION && size >= 32 ) {
+    fuzz_utf16_conversion_attack(&cx, data, size);
+  } else if( cx.fuzzMode == STRING_MODE_ENCODING_CONFUSION && size >= 16 ) {
+    fuzz_encoding_confusion_attack(&cx, data, size);
+  } else if( cx.fuzzMode == STRING_MODE_COLLATION_CHAOS && size >= 16 ) {
+    fuzz_collation_chaos_attack(&cx, data, size);
+  } else if( cx.fuzzMode == STRING_MODE_REGEX_CATASTROPHE && size >= 16 ) {
+    fuzz_regex_catastrophe_attack(&cx, data, size);
+  
+  /* Utility Batch Test Modes */
+  } else if( cx.fuzzMode == UTILITY_MODE_MATH_FUNCTIONS && size >= sizeof(utility_batch_packet) ) {
+    fuzz_math_functions_batch(&cx, data, size);
+  } else if( cx.fuzzMode == UTILITY_MODE_DATE_TIME && size >= sizeof(utility_batch_packet) ) {
+    fuzz_datetime_functions_batch(&cx, data, size);
+  } else if( cx.fuzzMode == UTILITY_MODE_SYSTEM_INFO && size >= sizeof(utility_batch_packet) ) {
+    fuzz_system_info_batch(&cx, data, size);
+  } else if( cx.fuzzMode == UTILITY_MODE_TYPE_CONVERSION && size >= sizeof(utility_batch_packet) ) {
+    fuzz_type_conversion_batch(&cx, data, size);
+  } else if( cx.fuzzMode == UTILITY_MODE_AGGREGATE_SIMPLE && size >= sizeof(utility_batch_packet) ) {
+    fuzz_aggregate_simple_batch(&cx, data, size);
+  } else if( cx.fuzzMode == UTILITY_MODE_JSON_FUNCTIONS && size >= sizeof(utility_batch_packet) ) {
+    fuzz_json_functions_batch(&cx, data, size);
+  } else if( cx.fuzzMode == UTILITY_MODE_MISC_UTILITIES && size >= sizeof(utility_batch_packet) ) {
+    fuzz_misc_utilities_batch(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;

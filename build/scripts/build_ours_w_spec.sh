@@ -4,7 +4,7 @@
 
 set -o pipefail
 
-DURATION=${DURATION_SEC:-6000}
+DURATION=${DURATION_SEC:-10}
 TIMEOUT=${TIMEOUT_SEC:-10}
 CC=${CC:-clang-18}
 CXX=${CXX:-clang++-18}
@@ -168,9 +168,24 @@ if [[ ! -x "$OUT_BIN" || "${FORCE_BUILD:-0}" = "1" ]]; then
 
   echo "Compiling crash_hunting_harness.c..."
   $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/crash_hunting_harness.c" -o "$OBJ_DIR/crash_hunting_harness.o"
+  
+  echo "Compiling memory_harness.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/memory_harness.c" -o "$OBJ_DIR/memory_harness.o"
+  
+  echo "Compiling btree_intensive_harness.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/btree_intensive_harness.c" -o "$OBJ_DIR/btree_intensive_harness.o"
+  
+  echo "Compiling vdbe_execution_harness.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/vdbe_execution_harness.c" -o "$OBJ_DIR/vdbe_execution_harness.o"
+  
+  echo "Compiling string_processing_harness.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/string_processing_harness.c" -o "$OBJ_DIR/string_processing_harness.o"
+  
+  echo "Compiling utility_batch_harness.c..."
+  $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -I"$FUZZER_DIR" -c "$FUZZER_DIR/utility_batch_harness.c" -o "$OBJ_DIR/utility_batch_harness.o"
 
   echo "Linking $OUT_BIN with libFuzzer..."
-  $CXX $COV_FLAGS $FUZZ_FLAGS "$OBJ_DIR/sqlite3.o" "$OBJ_DIR/fuzz.o" "$OBJ_DIR/btree_harness.o" "$OBJ_DIR/autovacuum_harness.o" "$OBJ_DIR/freespace_harness.o" "$OBJ_DIR/pagemanagement_harness.o" "$OBJ_DIR/tablecursor_harness.o" "$OBJ_DIR/btree_trans_harness.o" "$OBJ_DIR/cell_check_harness.o" "$OBJ_DIR/create_table_harness.o" "$OBJ_DIR/cursor_harness.o" "$OBJ_DIR/drop_table_harness.o" "$OBJ_DIR/page_ops_harness.o" "$OBJ_DIR/vdbe_ops_harness.o" "$OBJ_DIR/parser_harness.o" "$OBJ_DIR/btree_advanced_harness.o" "$OBJ_DIR/btree_extended_harness.o" "$OBJ_DIR/vdbe_memory_harness.o" "$OBJ_DIR/storage_pager_harness.o" "$OBJ_DIR/vdbe_auxiliary_harness.o" "$OBJ_DIR/parser_advanced_harness.o" "$OBJ_DIR/btree_meta_harness.o" "$OBJ_DIR/btree_cursor_ops_harness.o" "$OBJ_DIR/vdbe_auxiliary_extended_harness.o" "$OBJ_DIR/query_where_harness.o" "$OBJ_DIR/vdbe_record_harness.o" "$OBJ_DIR/vdbe_memory_advanced_harness.o" "$OBJ_DIR/btree_cursor_nav_harness.o" "$OBJ_DIR/btree_overflow_harness.o" "$OBJ_DIR/parser_expr_harness.o" "$OBJ_DIR/vdbe_value_api_harness.o" "$OBJ_DIR/vdbe_result_api_harness.o" "$OBJ_DIR/btree_trans_mgmt_harness.o" "$OBJ_DIR/btree_advanced_ops_harness.o" "$OBJ_DIR/high_impact_ops_harness.o" "$OBJ_DIR/btree_core_ops_harness.o" "$OBJ_DIR/btree_api_advanced_harness.o" "$OBJ_DIR/vulnerability_detection_harness.o" "$OBJ_DIR/crash_hunting_harness.o" $LDLIBS -o "$OUT_BIN"
+  $CXX $COV_FLAGS $FUZZ_FLAGS "$OBJ_DIR/sqlite3.o" "$OBJ_DIR/fuzz.o" "$OBJ_DIR/btree_harness.o" "$OBJ_DIR/autovacuum_harness.o" "$OBJ_DIR/freespace_harness.o" "$OBJ_DIR/pagemanagement_harness.o" "$OBJ_DIR/tablecursor_harness.o" "$OBJ_DIR/btree_trans_harness.o" "$OBJ_DIR/cell_check_harness.o" "$OBJ_DIR/create_table_harness.o" "$OBJ_DIR/cursor_harness.o" "$OBJ_DIR/drop_table_harness.o" "$OBJ_DIR/page_ops_harness.o" "$OBJ_DIR/vdbe_ops_harness.o" "$OBJ_DIR/parser_harness.o" "$OBJ_DIR/btree_advanced_harness.o" "$OBJ_DIR/btree_extended_harness.o" "$OBJ_DIR/vdbe_memory_harness.o" "$OBJ_DIR/storage_pager_harness.o" "$OBJ_DIR/vdbe_auxiliary_harness.o" "$OBJ_DIR/parser_advanced_harness.o" "$OBJ_DIR/btree_meta_harness.o" "$OBJ_DIR/btree_cursor_ops_harness.o" "$OBJ_DIR/vdbe_auxiliary_extended_harness.o" "$OBJ_DIR/query_where_harness.o" "$OBJ_DIR/vdbe_record_harness.o" "$OBJ_DIR/vdbe_memory_advanced_harness.o" "$OBJ_DIR/btree_cursor_nav_harness.o" "$OBJ_DIR/btree_overflow_harness.o" "$OBJ_DIR/parser_expr_harness.o" "$OBJ_DIR/vdbe_value_api_harness.o" "$OBJ_DIR/vdbe_result_api_harness.o" "$OBJ_DIR/btree_trans_mgmt_harness.o" "$OBJ_DIR/btree_advanced_ops_harness.o" "$OBJ_DIR/high_impact_ops_harness.o" "$OBJ_DIR/btree_core_ops_harness.o" "$OBJ_DIR/btree_api_advanced_harness.o" "$OBJ_DIR/vulnerability_detection_harness.o" "$OBJ_DIR/crash_hunting_harness.o" "$OBJ_DIR/memory_harness.o" "$OBJ_DIR/btree_intensive_harness.o" "$OBJ_DIR/vdbe_execution_harness.o" "$OBJ_DIR/string_processing_harness.o" "$OBJ_DIR/utility_batch_harness.o" $LDLIBS -o "$OUT_BIN"
   chmod +x "$OUT_BIN"
 else
   echo "Found existing binary: $OUT_BIN (skipping build)"

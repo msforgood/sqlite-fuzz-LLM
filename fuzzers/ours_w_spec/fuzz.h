@@ -48,6 +48,51 @@ struct memory_pressure_packet;
 #define FUZZ_MODE_CODE_VERIFY_SCHEMA    0x22  /* Target sqlite3CodeVerifySchema specifically */
 #define FUZZ_MODE_BTREE_BUSY_HANDLER    0x30  /* Target btreeInvokeBusyHandler specifically */
 #define FUZZ_MODE_BTREE_RESTORE_CURSOR  0x31  /* Target btreeRestoreCursorPosition specifically */
+
+/* Advanced Memory Attack Modes (0xA0-0xA6) */
+#define MEMORY_MODE_HEAP_SPRAY          0xA0  /* 힙 스프레이 공격 */
+#define MEMORY_MODE_DOUBLE_FREE         0xA1  /* 이중 해제 */
+#define MEMORY_MODE_USE_AFTER_FREE      0xA2  /* 해제 후 사용 */
+#define MEMORY_MODE_BUFFER_OVERFLOW     0xA3  /* 버퍼 오버플로우 */
+#define MEMORY_MODE_INTEGER_OVERFLOW    0xA4  /* 정수 오버플로우 */
+#define MEMORY_MODE_VDBE_MEMORY_STRESS  0xA5  /* VDBE 메모리 스트레스 */
+#define MEMORY_MODE_PAGE_ALLOC_STRESS   0xA6  /* 페이지 할당 스트레스 */
+
+/* B-Tree Intensive Attack Modes (0xB0-0xB6) */
+#define BTREE_MODE_PAGE_SPLIT_STRESS    0xB0  /* 페이지 분할 스트레스 */
+#define BTREE_MODE_MERGE_CORRUPTION     0xB1  /* 병합 손상 */
+#define BTREE_MODE_REBALANCE_CHAOS      0xB2  /* 재밸런싱 혼돈 */
+#define BTREE_MODE_CURSOR_MANIPULATION  0xB3  /* 커서 조작 */
+#define BTREE_MODE_INDEX_CORRUPTION     0xB4  /* 인덱스 손상 */
+#define BTREE_MODE_VACUUM_STRESS        0xB5  /* VACUUM 스트레스 */
+#define BTREE_MODE_TRANSACTION_CHAOS    0xB6  /* 트랜잭션 혼돈 */
+
+/* VDBE Execution Attack Modes (0xC0-0xC6) */
+#define VDBE_MODE_OPCODE_CHAOS         0xC0  /* 연산코드 혼돈 */
+#define VDBE_MODE_STACK_OVERFLOW       0xC1  /* 스택 오버플로우 */
+#define VDBE_MODE_REGISTER_CORRUPTION  0xC2  /* 레지스터 손상 */
+#define VDBE_MODE_PROGRAM_MANIPULATION 0xC3  /* 프로그램 조작 */
+#define VDBE_MODE_TYPE_CONFUSION       0xC4  /* 타입 혼동 */
+#define VDBE_MODE_AGGREGATE_CHAOS      0xC5  /* 집계 함수 혼돈 */
+#define VDBE_MODE_RECURSIVE_EXPLOSION  0xC6  /* 재귀 폭발 */
+
+/* String Processing Attack Modes (0xD0-0xD6) */
+#define STRING_MODE_UTF8_BOUNDARY       0xD0  /* UTF-8 경계 공격 */
+#define STRING_MODE_UTF16_CONVERSION    0xD1  /* UTF-16 변환 공격 */
+#define STRING_MODE_PATTERN_EXPLOSION   0xD2  /* 패턴 폭발 공격 */
+#define STRING_MODE_ENCODING_CONFUSION  0xD3  /* 인코딩 혼동 */
+#define STRING_MODE_COLLATION_CHAOS     0xD4  /* 조합 혼돈 */
+#define STRING_MODE_REGEX_CATASTROPHE   0xD5  /* 정규식 재앙 */
+#define STRING_MODE_FORMAT_OVERFLOW     0xD6  /* 포맷 오버플로우 */
+
+/* Utility Batch Test Modes (0xE0-0xE6) */
+#define UTILITY_MODE_MATH_FUNCTIONS     0xE0  /* 수학 함수 배치 */
+#define UTILITY_MODE_DATE_TIME          0xE1  /* 날짜/시간 함수 */
+#define UTILITY_MODE_SYSTEM_INFO        0xE2  /* 시스템 정보 함수 */
+#define UTILITY_MODE_TYPE_CONVERSION    0xE3  /* 타입 변환 함수 */
+#define UTILITY_MODE_AGGREGATE_SIMPLE   0xE4  /* 단순 집계 함수 */
+#define UTILITY_MODE_JSON_FUNCTIONS     0xE5  /* JSON 함수들 */
+#define UTILITY_MODE_MISC_UTILITIES     0xE6  /* 기타 유틸리티 */
 #define FUZZ_MODE_BTREE_SHARED_CACHE_LOCK 0x32  /* Target setSharedCacheTableLock specifically */
 #define FUZZ_MODE_BTREE_MOVETO          0x33  /* Target btreeMoveto specifically */
 #define FUZZ_MODE_BTREE_OVERWRITE_CELL  0x34  /* Target btreeOverwriteCell specifically */
