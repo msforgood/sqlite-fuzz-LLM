@@ -99,6 +99,14 @@
 #define FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE 0x69  /* Target sqlite3DbMallocSize specifically */
 #define FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS 0x6A  /* Target downgradeAllSharedCacheTableLocks specifically */
 
+/* B-Tree Core Operations Functions */
+#define FUZZ_MODE_SQLITE3_BTREE_CURSOR_IS_VALID 0x6B  /* Target sqlite3BtreeCursorIsValid specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CLEAR_CACHE 0x6C      /* Target sqlite3BtreeClearCache specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CURSOR_PIN 0x6D       /* Target sqlite3BtreeCursorPin specifically */
+#define FUZZ_MODE_HAS_SHARED_CACHE_TABLE_LOCK 0x6E    /* Target hasSharedCacheTableLock specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CURSOR_SIZE 0x6F      /* Target sqlite3BtreeCursorSize specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CLOSES_WITH_CURSOR 0x70 /* Target sqlite3BtreeClosesWithCursor specifically */
+
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
 #define BTALLOC_EXACT  1   /* Allocate exact page if possible */

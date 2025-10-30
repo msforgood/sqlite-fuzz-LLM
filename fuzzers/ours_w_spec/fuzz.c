@@ -37,6 +37,7 @@
 #include "btree_trans_mgmt_harness.h"
 #include "btree_advanced_ops_harness.h"
 #include "high_impact_ops_harness.h"
+#include "btree_core_ops_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -156,7 +157,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 99; /* 0-98 valid modes, added High-Impact Operations harnesses */
+  cx.fuzzMode = fuzzSelector % 105; /* 0-104 valid modes, added B-Tree Core Operations harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -523,6 +524,36 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pDlPacket->lockCount;
     cx.allocMode = pDlPacket->scenario;
     cx.corruptionSeed = pDlPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_IS_VALID && size >= sizeof(BtreeCursorValidPacket) ) {
+    const BtreeCursorValidPacket *pBcvPacket = (const BtreeCursorValidPacket*)data;
+    cx.targetPgno = pBcvPacket->pgnoRoot;
+    cx.allocMode = pBcvPacket->cursorState;
+    cx.corruptionSeed = pBcvPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLEAR_CACHE && size >= sizeof(BtreeClearCachePacket) ) {
+    const BtreeClearCachePacket *pBccPacket = (const BtreeClearCachePacket*)data;
+    cx.targetPgno = pBccPacket->pageCount;
+    cx.allocMode = pBccPacket->cacheMode;
+    cx.corruptionSeed = pBccPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_PIN && size >= sizeof(BtreeCursorPinPacket) ) {
+    const BtreeCursorPinPacket *pBcpPacket = (const BtreeCursorPinPacket*)data;
+    cx.targetPgno = pBcpPacket->pageNumber;
+    cx.allocMode = pBcpPacket->pinMode;
+    cx.corruptionSeed = pBcpPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_HAS_SHARED_CACHE_TABLE_LOCK && size >= sizeof(SharedCacheLockPacket) ) {
+    const SharedCacheLockPacket *pSclPacket = (const SharedCacheLockPacket*)data;
+    cx.targetPgno = pSclPacket->tableNumber;
+    cx.allocMode = pSclPacket->lockType;
+    cx.corruptionSeed = pSclPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_SIZE && size >= sizeof(BtreeCursorSizePacket) ) {
+    const BtreeCursorSizePacket *pBcsPacket = (const BtreeCursorSizePacket*)data;
+    cx.targetPgno = pBcsPacket->extraSize;
+    cx.allocMode = pBcsPacket->sizeMode;
+    cx.corruptionSeed = pBcsPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLOSES_WITH_CURSOR && size >= sizeof(BtreeClosesCursorPacket) ) {
+    const BtreeClosesCursorPacket *pBcwcPacket = (const BtreeClosesCursorPacket*)data;
+    cx.targetPgno = pBcwcPacket->connectionId;
+    cx.allocMode = pBcwcPacket->closeMode;
+    cx.corruptionSeed = pBcwcPacket->scenario;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -1296,6 +1327,42 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute downgrade all shared cache locks fuzzing */
     fuzz_downgrade_all_shared_cache_locks(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_IS_VALID && size >= sizeof(BtreeCursorValidPacket) ) {
+    const BtreeCursorValidPacket *pBcvPacket = (const BtreeCursorValidPacket*)data;
+    cx.execCnt = (pBcvPacket->testParams[0] % 12) + 1;
+    
+    /* Execute SQLite3 B-Tree cursor is valid fuzzing */
+    fuzz_sqlite3_btree_cursor_is_valid(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLEAR_CACHE && size >= sizeof(BtreeClearCachePacket) ) {
+    const BtreeClearCachePacket *pBccPacket = (const BtreeClearCachePacket*)data;
+    cx.execCnt = (pBccPacket->testParams[0] % 10) + 1;
+    
+    /* Execute SQLite3 B-Tree clear cache fuzzing */
+    fuzz_sqlite3_btree_clear_cache(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_PIN && size >= sizeof(BtreeCursorPinPacket) ) {
+    const BtreeCursorPinPacket *pBcpPacket = (const BtreeCursorPinPacket*)data;
+    cx.execCnt = (pBcpPacket->testParams[0] % 8) + 1;
+    
+    /* Execute SQLite3 B-Tree cursor pin fuzzing */
+    fuzz_sqlite3_btree_cursor_pin(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_HAS_SHARED_CACHE_TABLE_LOCK && size >= sizeof(SharedCacheLockPacket) ) {
+    const SharedCacheLockPacket *pSclPacket = (const SharedCacheLockPacket*)data;
+    cx.execCnt = (pSclPacket->testParams[0] % 10) + 1;
+    
+    /* Execute has shared cache table lock fuzzing */
+    fuzz_has_shared_cache_table_lock(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_SIZE && size >= sizeof(BtreeCursorSizePacket) ) {
+    const BtreeCursorSizePacket *pBcsPacket = (const BtreeCursorSizePacket*)data;
+    cx.execCnt = (pBcsPacket->testParams[0] % 6) + 1;
+    
+    /* Execute SQLite3 B-Tree cursor size fuzzing */
+    fuzz_sqlite3_btree_cursor_size(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLOSES_WITH_CURSOR && size >= sizeof(BtreeClosesCursorPacket) ) {
+    const BtreeClosesCursorPacket *pBcwcPacket = (const BtreeClosesCursorPacket*)data;
+    cx.execCnt = (pBcwcPacket->testParams[0] % 8) + 1;
+    
+    /* Execute SQLite3 B-Tree closes with cursor fuzzing */
+    fuzz_sqlite3_btree_closes_with_cursor(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1376,6 +1443,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_WRITE ) packetSize = sizeof(VdbeSorterWritePacket);
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE ) packetSize = sizeof(DbMallocSizePacket);
   else if( cx.fuzzMode == FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS ) packetSize = sizeof(DowngradeLocksPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_IS_VALID ) packetSize = sizeof(BtreeCursorValidPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLEAR_CACHE ) packetSize = sizeof(BtreeClearCachePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_PIN ) packetSize = sizeof(BtreeCursorPinPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_HAS_SHARED_CACHE_TABLE_LOCK ) packetSize = sizeof(SharedCacheLockPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_SIZE ) packetSize = sizeof(BtreeCursorSizePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLOSES_WITH_CURSOR ) packetSize = sizeof(BtreeClosesCursorPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
