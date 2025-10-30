@@ -771,8 +771,8 @@ sqlite3ExpirePreparedStatements,vdbeaux.c,5333,void,VDBE,Statement Preparation,C
 sqlite3Stat4ProbeFree,vdbemem.c,1993,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3Stat4ProbeFree(UnpackedRecord *pRec){, True
 sqlite3Step,vdbeapi.c,753,int,VDBE,Statement Execution,Critical,Low,True,True,Statement Execution function in VDBE subsystem,static int sqlite3Step(Vdbe *p){, False
 sqlite3ValueFree,vdbemem.c,2024,void,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,void sqlite3ValueFree(sqlite3_value *v){, True
-sqlite3VdbeAddDblquoteStr,vdbeaux.c,84,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeAddDblquoteStr(sqlite3 *db, Vdbe *p, const char *z){", False
-sqlite3VdbeAddFunctionCall,vdbeaux.c,438,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddFunctionCall(, False
+sqlite3VdbeAddDblquoteStr,vdbeaux.c,84,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeAddDblquoteStr(sqlite3 *db, Vdbe *p, const char *z){",True
+sqlite3VdbeAddFunctionCall,vdbeaux.c,438,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddFunctionCall(,True
 sqlite3VdbeAddOp0,vdbeaux.c,263,int,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"int sqlite3VdbeAddOp0(Vdbe *p, int op){", False
 sqlite3VdbeAddOp1,vdbeaux.c,266,int,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"int sqlite3VdbeAddOp1(Vdbe *p, int op, int p1){", False
 sqlite3VdbeAddOp2,vdbeaux.c,269,int,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"int sqlite3VdbeAddOp2(Vdbe *p, int op, int p1, int p2){", False
@@ -785,7 +785,7 @@ sqlite3VdbeAddOp3,vdbeaux.c,370,return,VDBE,Auxiliary Functions,Critical,Medium,
 sqlite3VdbeAddOp4,vdbeaux.c,377,return,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"return sqlite3VdbeAddOp4(p, OP_String8, 0, iDest, 0, zStr, 0);", False
 sqlite3VdbeAddOp4,vdbeaux.c,414,int,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddOp4(, False
 sqlite3VdbeAddOp4,vdbeaux.c,485,return,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"return sqlite3VdbeAddOp4(p, op, p1, p2, p3, p4copy, p4type);", False
-sqlite3VdbeAddOp4Dup8,vdbeaux.c,474,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddOp4Dup8(, False
+sqlite3VdbeAddOp4Dup8,vdbeaux.c,474,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddOp4Dup8(,True
 sqlite3VdbeAddOp4Int,vdbeaux.c,317,int,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddOp4Int(, False
 sqlite3VdbeAddParseSchemaOp,vdbeaux.c,562,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeAddParseSchemaOp(Vdbe *p, int iDb, char *zWhere, u16 p5){", False
 sqlite3VdbeAppendP4,vdbeaux.c,1609,void,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeAppendP4(Vdbe *p, void *pP4, int n){", False

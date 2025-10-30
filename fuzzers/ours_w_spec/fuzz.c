@@ -378,6 +378,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pBpcpnpPacket->keyValue;
     cx.allocMode = pBpcpnpPacket->scenario;
     cx.corruptionSeed = pBpcpnpPacket->varintBytes;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR && size >= sizeof(VdbeAddDblquoteStrPacket) ) {
+    const VdbeAddDblquoteStrPacket *pVadsPacket = (const VdbeAddDblquoteStrPacket*)data;
+    cx.targetPgno = pVadsPacket->stringLength;
+    cx.allocMode = pVadsPacket->scenario;
+    cx.corruptionSeed = pVadsPacket->memoryPressure;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL && size >= sizeof(VdbeAddFunctionCallPacket) ) {
+    const VdbeAddFunctionCallPacket *pVafcPacket = (const VdbeAddFunctionCallPacket*)data;
+    cx.targetPgno = pVafcPacket->constantMask;
+    cx.allocMode = pVafcPacket->scenario;
+    cx.corruptionSeed = pVafcPacket->argumentCount;
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 && size >= sizeof(VdbeAddOp4Dup8Packet) ) {
+    const VdbeAddOp4Dup8Packet *pVaodPacket = (const VdbeAddOp4Dup8Packet*)data;
+    cx.targetPgno = pVaodPacket->opcode;
+    cx.allocMode = pVaodPacket->scenario;
+    cx.corruptionSeed = pVaodPacket->p4type;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -957,6 +972,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute B-Tree parse cell ptr no payload fuzzing */
     fuzz_btree_parse_cell_ptr_no_payload(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR && size >= sizeof(VdbeAddDblquoteStrPacket) ) {
+    const VdbeAddDblquoteStrPacket *pVadsPacket = (const VdbeAddDblquoteStrPacket*)data;
+    cx.execCnt = (pVadsPacket->testString[0] % 25) + 1;
+    
+    /* Execute VDBE add dblquote string fuzzing */
+    fuzz_vdbe_add_dblquote_str(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL && size >= sizeof(VdbeAddFunctionCallPacket) ) {
+    const VdbeAddFunctionCallPacket *pVafcPacket = (const VdbeAddFunctionCallPacket*)data;
+    cx.execCnt = (pVafcPacket->scenario % 30) + 1;
+    
+    /* Execute VDBE add function call fuzzing */
+    fuzz_vdbe_add_function_call(&cx, pVafcPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 && size >= sizeof(VdbeAddOp4Dup8Packet) ) {
+    const VdbeAddOp4Dup8Packet *pVaodPacket = (const VdbeAddOp4Dup8Packet*)data;
+    cx.execCnt = (pVaodPacket->scenario % 20) + 1;
+    
+    /* Execute VDBE add op4 dup8 fuzzing */
+    fuzz_vdbe_add_op4_dup8(&cx, pVaodPacket);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1023,6 +1056,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL ) packetSize = sizeof(BtreeOverwriteOverflowCellPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX ) packetSize = sizeof(BtreeParseCellPtrIndexPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD ) packetSize = sizeof(BtreeParseCellPtrNoPayloadPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR ) packetSize = sizeof(VdbeAddDblquoteStrPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL ) packetSize = sizeof(VdbeAddFunctionCallPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 ) packetSize = sizeof(VdbeAddOp4Dup8Packet);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

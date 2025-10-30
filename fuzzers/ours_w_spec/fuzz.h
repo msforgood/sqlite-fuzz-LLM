@@ -70,6 +70,9 @@
 #define FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL 0x4C  /* Target btreeOverwriteOverflowCell specifically */
 #define FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX 0x4D  /* Target btreeParseCellPtrIndex specifically */
 #define FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD 0x4E  /* Target btreeParseCellPtrNoPayload specifically */
+#define FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR 0x4F  /* Target sqlite3VdbeAddDblquoteStr specifically */
+#define FUZZ_MODE_VDBE_ADD_FUNCTION_CALL 0x50  /* Target sqlite3VdbeAddFunctionCall specifically */
+#define FUZZ_MODE_VDBE_ADD_OP4_DUP8 0x51  /* Target sqlite3VdbeAddOp4Dup8 specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
