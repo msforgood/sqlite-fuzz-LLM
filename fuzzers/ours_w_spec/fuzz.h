@@ -76,6 +76,9 @@
 #define FUZZ_MODE_EXPR_ATTACH_SUBTREES 0x52  /* Target sqlite3ExprAttachSubtrees specifically */
 #define FUZZ_MODE_NESTED_PARSE 0x53  /* Target sqlite3NestedParse specifically */
 #define FUZZ_MODE_TABLE_LOCK 0x54  /* Target sqlite3TableLock specifically */
+#define FUZZ_MODE_VALUE_BYTES16 0x55  /* Target sqlite3_value_bytes16 specifically */
+#define FUZZ_MODE_VALUE_NOCHANGE 0x56  /* Target sqlite3_value_nochange specifically */
+#define FUZZ_MODE_VTAB_IN_FIRST 0x57  /* Target sqlite3_vtab_in_first specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

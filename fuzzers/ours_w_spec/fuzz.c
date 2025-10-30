@@ -32,6 +32,7 @@
 #include "query_where_harness.h"
 #include "parser_advanced_harness.h"
 #include "parser_expr_harness.h"
+#include "vdbe_value_api_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -145,11 +146,13 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(ColumnMallocFailurePacket) && size < sizeof(FreeP4Packet) &&
       size < sizeof(AssertFieldCountPacket) &&
       size < sizeof(ExprAttachSubtreesPacket) && size < sizeof(NestedParsePacket) &&
-      size < sizeof(TableLockPacket) ) return 0;
+      size < sizeof(TableLockPacket) &&
+      size < sizeof(ValueBytes16Packet) && size < sizeof(ValueNochangePacket) &&
+      size < sizeof(VtabInFirstPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 77; /* 0-76 valid modes, added VDBE Memory Advanced harnesses */
+  cx.fuzzMode = fuzzSelector % 80; /* 0-79 valid modes, added VDBE Value API harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -406,6 +409,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pTlPacket->pageNumber;
     cx.allocMode = pTlPacket->scenario;
     cx.corruptionSeed = pTlPacket->databaseIndex;
+  } else if( cx.fuzzMode == FUZZ_MODE_VALUE_BYTES16 && size >= sizeof(ValueBytes16Packet) ) {
+    const ValueBytes16Packet *pVb16Packet = (const ValueBytes16Packet*)data;
+    cx.targetPgno = pVb16Packet->textLength;
+    cx.allocMode = pVb16Packet->scenario;
+    cx.corruptionSeed = pVb16Packet->valueType;
+  } else if( cx.fuzzMode == FUZZ_MODE_VALUE_NOCHANGE && size >= sizeof(ValueNochangePacket) ) {
+    const ValueNochangePacket *pVncPacket = (const ValueNochangePacket*)data;
+    cx.targetPgno = pVncPacket->flags;
+    cx.allocMode = pVncPacket->scenario;
+    cx.corruptionSeed = pVncPacket->flagsCombination;
+  } else if( cx.fuzzMode == FUZZ_MODE_VTAB_IN_FIRST && size >= sizeof(VtabInFirstPacket) ) {
+    const VtabInFirstPacket *pVifPacket = (const VtabInFirstPacket*)data;
+    cx.targetPgno = pVifPacket->valueListSize;
+    cx.allocMode = pVifPacket->scenario;
+    cx.corruptionSeed = pVifPacket->iteratorPosition;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -1015,6 +1033,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute table lock fuzzing */
     fuzz_table_lock(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_VALUE_BYTES16 && size >= sizeof(ValueBytes16Packet) ) {
+    const ValueBytes16Packet *pVb16Packet = (const ValueBytes16Packet*)data;
+    cx.execCnt = (pVb16Packet->testData[0] % 15) + 1;
+    
+    /* Execute value bytes16 fuzzing */
+    fuzz_value_bytes16(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_VALUE_NOCHANGE && size >= sizeof(ValueNochangePacket) ) {
+    const ValueNochangePacket *pVncPacket = (const ValueNochangePacket*)data;
+    cx.execCnt = (pVncPacket->testData[0] % 12) + 1;
+    
+    /* Execute value nochange fuzzing */
+    fuzz_value_nochange(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_VTAB_IN_FIRST && size >= sizeof(VtabInFirstPacket) ) {
+    const VtabInFirstPacket *pVifPacket = (const VtabInFirstPacket*)data;
+    cx.execCnt = (pVifPacket->valueData[0] % 18) + 1;
+    
+    /* Execute vtab in first fuzzing */
+    fuzz_vtab_in_first(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1086,6 +1122,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_EXPR_ATTACH_SUBTREES ) packetSize = sizeof(ExprAttachSubtreesPacket);
   else if( cx.fuzzMode == FUZZ_MODE_NESTED_PARSE ) packetSize = sizeof(NestedParsePacket);
   else if( cx.fuzzMode == FUZZ_MODE_TABLE_LOCK ) packetSize = sizeof(TableLockPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VALUE_BYTES16 ) packetSize = sizeof(ValueBytes16Packet);
+  else if( cx.fuzzMode == FUZZ_MODE_VALUE_NOCHANGE ) packetSize = sizeof(ValueNochangePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_VTAB_IN_FIRST ) packetSize = sizeof(VtabInFirstPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
