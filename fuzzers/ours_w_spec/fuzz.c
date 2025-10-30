@@ -157,7 +157,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 105; /* 0-104 valid modes, added B-Tree Core Operations harnesses */
+  cx.fuzzMode = fuzzSelector % 108; /* 0-107 valid modes, added B-Tree Cursor Navigation harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -554,6 +554,21 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pBcwcPacket->connectionId;
     cx.allocMode = pBcwcPacket->closeMode;
     cx.corruptionSeed = pBcwcPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK_NAV && size >= sizeof(btree_cursor_lock_packet) ) {
+    const btree_cursor_lock_packet *pBclPacket = (const btree_cursor_lock_packet*)data;
+    cx.targetPgno = pBclPacket->pgnoRoot;
+    cx.allocMode = pBclPacket->lockMode;
+    cx.corruptionSeed = pBclPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST_NAV && size >= sizeof(btree_last_packet) ) {
+    const btree_last_packet *pBlPacket = (const btree_last_packet*)data;
+    cx.targetPgno = pBlPacket->pageHints;
+    cx.allocMode = pBlPacket->navigationMode;
+    cx.corruptionSeed = pBlPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT_NAV && size >= sizeof(btree_next_packet) ) {
+    const btree_next_packet *pBnPacket = (const btree_next_packet*)data;
+    cx.targetPgno = pBnPacket->startId;
+    cx.allocMode = pBnPacket->iterationMode;
+    cx.corruptionSeed = pBnPacket->scenario;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -1363,6 +1378,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute SQLite3 B-Tree closes with cursor fuzzing */
     fuzz_sqlite3_btree_closes_with_cursor(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK_NAV && size >= sizeof(btree_cursor_lock_packet) ) {
+    const btree_cursor_lock_packet *pBclPacket = (const btree_cursor_lock_packet*)data;
+    cx.execCnt = (pBclPacket->testParams[0] % 15) + 1;
+    
+    /* Execute B-Tree cursor with lock navigation fuzzing */
+    fuzz_btree_cursor_with_lock(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST_NAV && size >= sizeof(btree_last_packet) ) {
+    const btree_last_packet *pBlPacket = (const btree_last_packet*)data;
+    cx.execCnt = (pBlPacket->testParams[0] % 10) + 1;
+    
+    /* Execute B-Tree last navigation fuzzing */
+    fuzz_btree_last(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT_NAV && size >= sizeof(btree_next_packet) ) {
+    const btree_next_packet *pBnPacket = (const btree_next_packet*)data;
+    cx.execCnt = (pBnPacket->testParams[0] % 12) + 1;
+    
+    /* Execute B-Tree next navigation fuzzing */
+    fuzz_btree_next(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1449,6 +1482,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_HAS_SHARED_CACHE_TABLE_LOCK ) packetSize = sizeof(SharedCacheLockPacket);
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_SIZE ) packetSize = sizeof(BtreeCursorSizePacket);
   else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLOSES_WITH_CURSOR ) packetSize = sizeof(BtreeClosesCursorPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK_NAV ) packetSize = sizeof(btree_cursor_lock_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST_NAV ) packetSize = sizeof(btree_last_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT_NAV ) packetSize = sizeof(btree_next_packet);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

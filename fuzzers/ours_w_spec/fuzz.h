@@ -107,6 +107,11 @@
 #define FUZZ_MODE_SQLITE3_BTREE_CURSOR_SIZE 0x6F      /* Target sqlite3BtreeCursorSize specifically */
 #define FUZZ_MODE_SQLITE3_BTREE_CLOSES_WITH_CURSOR 0x70 /* Target sqlite3BtreeClosesWithCursor specifically */
 
+/* B-Tree Cursor Navigation Functions */
+#define FUZZ_MODE_BTREE_CURSOR_WITH_LOCK_NAV 0x71     /* Target btreeCursorWithLock navigation specifically */
+#define FUZZ_MODE_BTREE_LAST_NAV 0x72                 /* Target btreeLast navigation specifically */
+#define FUZZ_MODE_BTREE_NEXT_NAV 0x73                 /* Target btreeNext navigation specifically */
+
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
 #define BTALLOC_EXACT  1   /* Allocate exact page if possible */

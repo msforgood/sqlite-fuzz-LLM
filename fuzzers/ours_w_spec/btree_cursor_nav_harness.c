@@ -1,300 +1,467 @@
-/*
-** SQLite3 B-Tree Cursor Navigation Harness Implementation
-** Target functions: btreeCursorWithLock, btreeLast, btreeNext
-** Specification-based fuzzing for critical cursor navigation functions
-*/
-
+#include "fuzz.h"
 #include "btree_cursor_nav_harness.h"
 
-/* Utility function to setup test B-Tree structure for navigation testing */
-static int setup_test_btree_for_navigation(sqlite3 *db, uint32_t rootPage) {
-    int rc;
-    char *zErrMsg = 0;
+static int setup_test_database_with_data(FuzzCtx *ctx, int record_count) {
+    if (!ctx || !ctx->db) return 0;
+    
+    int rc = sqlite3_exec(ctx->db, "BEGIN IMMEDIATE;", NULL, NULL, NULL);
+    if (rc != SQLITE_OK) return 0;
+    
+    rc = sqlite3_exec(ctx->db, "CREATE TABLE IF NOT EXISTS nav_test(id INTEGER PRIMARY KEY, data TEXT, value INTEGER);", NULL, NULL, NULL);
+    if (rc != SQLITE_OK) {
+        sqlite3_exec(ctx->db, "ROLLBACK;", NULL, NULL, NULL);
+        return 0;
+    }
+    
     char sql[256];
-    
-    /* Create test table with various record types */
-    rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS nav_test(id INTEGER PRIMARY KEY, data TEXT, num REAL, blob_data BLOB);", NULL, NULL, &zErrMsg);
-    if (rc != SQLITE_OK) {
-        if (zErrMsg) sqlite3_free(zErrMsg);
-        return rc;
-    }
-    
-    /* Insert test records for cursor navigation */
-    const char* insert_queries[] = {
-        "INSERT OR IGNORE INTO nav_test VALUES (1, 'first_record', 1.1, x'deadbeef');",
-        "INSERT OR IGNORE INTO nav_test VALUES (2, 'second_record', 2.2, x'cafebabe');",
-        "INSERT OR IGNORE INTO nav_test VALUES (3, 'third_record', 3.3, x'feedface');",
-        "INSERT OR IGNORE INTO nav_test VALUES (10, 'tenth_record', 10.0, x'12345678');",
-        "INSERT OR IGNORE INTO nav_test VALUES (20, 'twentieth_record', 20.0, x'87654321');"
-    };
-    
-    for (int i = 0; i < 5; i++) {
-        rc = sqlite3_exec(db, insert_queries[i], NULL, NULL, &zErrMsg);
-        if (rc != SQLITE_OK && rc != SQLITE_CONSTRAINT) {
-            if (zErrMsg) sqlite3_free(zErrMsg);
-            return rc;
-        }
-        if (zErrMsg) {
-            sqlite3_free(zErrMsg);
-            zErrMsg = 0;
+    for (int i = 1; i <= record_count; i++) {
+        snprintf(sql, sizeof(sql), "INSERT OR REPLACE INTO nav_test(id, data, value) VALUES(%d, 'record_%d', %d);", 
+                 i, i, i * 10);
+        rc = sqlite3_exec(ctx->db, sql, NULL, NULL, NULL);
+        if (rc != SQLITE_OK) {
+            sqlite3_exec(ctx->db, "ROLLBACK;", NULL, NULL, NULL);
+            return 0;
         }
     }
     
-    return SQLITE_OK;
+    rc = sqlite3_exec(ctx->db, "COMMIT;", NULL, NULL, NULL);
+    return (rc == SQLITE_OK) ? 1 : 0;
 }
 
-/* Utility function to create test cursor state */
-static int create_test_cursor_state(sqlite3 *db, uint32_t tableRoot, int wrFlag) {
-    int rc;
-    sqlite3_stmt *pStmt;
+static int create_test_cursor(FuzzCtx *ctx, sqlite3_stmt **stmt) {
+    if (!ctx || !ctx->db || !stmt) return 0;
     
-    /* Prepare statement to establish cursor context */
-    const char *sql = wrFlag ? 
-        "UPDATE nav_test SET data = 'modified' WHERE id = 1;" :
-        "SELECT * FROM nav_test WHERE id >= 1 ORDER BY id;";
-    
-    rc = sqlite3_prepare_v2(db, sql, -1, &pStmt, NULL);
-    if (rc != SQLITE_OK) {
-        return rc;
-    }
-    
-    /* Execute to establish cursor state */
-    rc = sqlite3_step(pStmt);
-    sqlite3_finalize(pStmt);
-    
-    return (rc == SQLITE_ROW || rc == SQLITE_DONE) ? SQLITE_OK : rc;
+    const char *sql = "SELECT id, data, value FROM nav_test ORDER BY id";
+    int rc = sqlite3_prepare_v2(ctx->db, sql, -1, stmt, NULL);
+    return (rc == SQLITE_OK && *stmt != NULL) ? 1 : 0;
 }
 
-/* Fuzzing harness for btreeCursorWithLock */
 int fuzz_btree_cursor_with_lock(FuzzCtx *ctx, const uint8_t *data, size_t size) {
-    if (size < sizeof(BtreeCursorWithLockPacket)) {
-        return SQLITE_OK;
-    }
+    if (!ctx || !data || size < 28) return 0;
     
-    const BtreeCursorWithLockPacket *packet = (const BtreeCursorWithLockPacket*)data;
-    int rc = SQLITE_OK;
+    btree_cursor_lock_packet packet;
+    memcpy(&packet, data, sizeof(packet));
     
-    /* Boundary validation according to spec */
-    if (packet->wrFlag > 1) return SQLITE_OK;
-    if (packet->iTable == 0) return SQLITE_OK;
+    if (packet.scenario >= 15) return 0;
+    if (packet.lockMode > 3) return 0;
+    if (packet.cursorType > 2) return 0;
     
-    /* Setup test environment */
-    rc = setup_test_btree_for_navigation(ctx->db, packet->iTable);
-    if (rc != SQLITE_OK) return rc;
+    if (!setup_test_database_with_data(ctx, 50)) return 0;
     
-    /* Begin transaction for cursor testing */
-    char *zErrMsg = 0;
-    const char *trans_sql = packet->wrFlag ? "BEGIN IMMEDIATE;" : "BEGIN;";
-    rc = sqlite3_exec(ctx->db, trans_sql, NULL, NULL, &zErrMsg);
-    if (rc != SQLITE_OK) {
-        if (zErrMsg) sqlite3_free(zErrMsg);
-        return rc;
-    }
-    
-    /* Test various cursor scenarios based on packet data */
-    sqlite3_stmt *pStmt = NULL;
-    const char *test_sql;
-    
-    switch (packet->scenario % 8) {
-        case 0: /* Basic cursor open on table */
-            test_sql = "SELECT * FROM nav_test WHERE id = ?;";
-            break;
-        case 1: /* Index cursor scenario */
-            test_sql = "SELECT * FROM nav_test WHERE data LIKE ?;";
-            break;
-        case 2: /* Write cursor scenario */
-            test_sql = packet->wrFlag ? "UPDATE nav_test SET num = ? WHERE id = 1;" : 
-                                      "SELECT * FROM nav_test ORDER BY id;";
-            break;
-        case 3: /* Range scan cursor */
-            test_sql = "SELECT * FROM nav_test WHERE id BETWEEN ? AND ?;";
-            break;
-        case 4: /* Empty result cursor */
-            test_sql = "SELECT * FROM nav_test WHERE id = -1;";
-            break;
-        case 5: /* Large scan cursor */
-            test_sql = "SELECT * FROM nav_test ORDER BY data;";
-            break;
-        case 6: /* Aggregate cursor */
-            test_sql = "SELECT COUNT(*), MAX(id) FROM nav_test;";
-            break;
-        default: /* Full table scan */
-            test_sql = "SELECT rowid, * FROM nav_test;";
-            break;
-    }
-    
-    rc = sqlite3_prepare_v2(ctx->db, test_sql, -1, &pStmt, NULL);
-    if (rc == SQLITE_OK && pStmt) {
-        /* Bind parameters if needed */
-        int param_count = sqlite3_bind_parameter_count(pStmt);
-        for (int i = 1; i <= param_count && i <= 2; i++) {
-            sqlite3_bind_int(pStmt, i, (packet->keyFields + i) % 100);
-        }
-        
-        /* Exercise cursor through multiple steps */
-        int step_count = 0;
-        while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW && step_count < 10) {
-            /* Access columns to trigger cursor navigation */
-            int cols = sqlite3_column_count(pStmt);
-            for (int j = 0; j < cols && j < 4; j++) {
-                sqlite3_column_int(pStmt, j);
-                sqlite3_column_text(pStmt, j);
+    sqlite3_stmt *stmt = NULL;
+    switch (packet.scenario) {
+        case 0:
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
             }
-            step_count++;
-        }
-        
-        sqlite3_finalize(pStmt);
-    }
-    
-    /* Rollback transaction */
-    sqlite3_exec(ctx->db, "ROLLBACK;", NULL, NULL, NULL);
-    
-    return SQLITE_OK;
-}
-
-/* Fuzzing harness for btreeLast */
-int fuzz_btree_last(FuzzCtx *ctx, const uint8_t *data, size_t size) {
-    if (size < sizeof(BtreeLastPacket)) {
-        return SQLITE_OK;
-    }
-    
-    const BtreeLastPacket *packet = (const BtreeLastPacket*)data;
-    int rc = SQLITE_OK;
-    
-    /* Boundary validation */
-    if (packet->rootPage == 0) return SQLITE_OK;
-    
-    /* Setup test environment */
-    rc = setup_test_btree_for_navigation(ctx->db, packet->rootPage);
-    if (rc != SQLITE_OK) return rc;
-    
-    /* Test cursor positioning to last record scenarios */
-    sqlite3_stmt *pStmt = NULL;
-    const char *test_sql;
-    
-    switch (packet->scenario % 6) {
-        case 0: /* Basic last record access */
-            test_sql = "SELECT * FROM nav_test ORDER BY id DESC LIMIT 1;";
             break;
-        case 1: /* Last in index */
-            test_sql = "SELECT * FROM nav_test ORDER BY data DESC LIMIT 1;";
-            break;
-        case 2: /* Last with WHERE clause */
-            test_sql = "SELECT * FROM nav_test WHERE id > 0 ORDER BY id DESC LIMIT 1;";
-            break;
-        case 3: /* Last in reverse scan */
-            test_sql = "SELECT * FROM nav_test ORDER BY rowid DESC;";
-            break;
-        case 4: /* Last in empty result */
-            test_sql = "SELECT * FROM nav_test WHERE id < 0 ORDER BY id DESC;";
-            break;
-        default: /* Last in aggregate context */
-            test_sql = "SELECT MAX(id), * FROM nav_test;";
-            break;
-    }
-    
-    rc = sqlite3_prepare_v2(ctx->db, test_sql, -1, &pStmt, NULL);
-    if (rc == SQLITE_OK && pStmt) {
-        /* Exercise last record positioning */
-        rc = sqlite3_step(pStmt);
-        if (rc == SQLITE_ROW) {
-            /* Access all columns to trigger internal cursor operations */
-            int cols = sqlite3_column_count(pStmt);
-            for (int i = 0; i < cols; i++) {
-                sqlite3_column_type(pStmt, i);
-                sqlite3_column_bytes(pStmt, i);
-            }
-        }
-        
-        /* Test multiple last operations */
-        sqlite3_reset(pStmt);
-        for (int i = 0; i < 3; i++) {
-            rc = sqlite3_step(pStmt);
-            if (rc != SQLITE_ROW) break;
-        }
-        
-        sqlite3_finalize(pStmt);
-    }
-    
-    return SQLITE_OK;
-}
-
-/* Fuzzing harness for btreeNext */
-int fuzz_btree_next(FuzzCtx *ctx, const uint8_t *data, size_t size) {
-    if (size < sizeof(BtreeNextPacket)) {
-        return SQLITE_OK;
-    }
-    
-    const BtreeNextPacket *packet = (const BtreeNextPacket*)data;
-    int rc = SQLITE_OK;
-    
-    /* Setup test environment */
-    rc = setup_test_btree_for_navigation(ctx->db, 1);
-    if (rc != SQLITE_OK) return rc;
-    
-    /* Test cursor advancement scenarios */
-    sqlite3_stmt *pStmt = NULL;
-    const char *test_sql;
-    
-    switch (packet->scenario % 8) {
-        case 0: /* Sequential forward scan */
-            test_sql = "SELECT * FROM nav_test ORDER BY id;";
-            break;
-        case 1: /* Index scan with next operations */
-            test_sql = "SELECT * FROM nav_test ORDER BY data;";
-            break;
-        case 2: /* Filtered scan with next */
-            test_sql = "SELECT * FROM nav_test WHERE id > 1 ORDER BY id;";
-            break;
-        case 3: /* Join operations requiring next */
-            test_sql = "SELECT a.id, b.id FROM nav_test a, nav_test b WHERE a.id < b.id;";
-            break;
-        case 4: /* Grouped scan with next */
-            test_sql = "SELECT data, COUNT(*) FROM nav_test GROUP BY SUBSTR(data, 1, 5);";
-            break;
-        case 5: /* Subquery with next operations */
-            test_sql = "SELECT * FROM nav_test WHERE id IN (SELECT id FROM nav_test WHERE id > 1);";
-            break;
-        case 6: /* DISTINCT scan requiring next */
-            test_sql = "SELECT DISTINCT SUBSTR(data, 1, 10) FROM nav_test;";
-            break;
-        default: /* Complex scan pattern */
-            test_sql = "SELECT * FROM nav_test WHERE id % 2 = 0 ORDER BY num DESC;";
-            break;
-    }
-    
-    rc = sqlite3_prepare_v2(ctx->db, test_sql, -1, &pStmt, NULL);
-    if (rc == SQLITE_OK && pStmt) {
-        /* Exercise cursor next operations extensively */
-        int row_count = 0;
-        int max_rows = (packet->cellIndex % 20) + 5; /* Limit iteration based on input */
-        
-        while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW && row_count < max_rows) {
-            /* Access columns to trigger cursor navigation */
-            int cols = sqlite3_column_count(pStmt);
-            for (int i = 0; i < cols && i < 3; i++) {
-                sqlite3_column_int(pStmt, i);
-                sqlite3_column_text(pStmt, i);
-                sqlite3_column_double(pStmt, i);
-            }
             
-            /* Simulate various cursor states during iteration */
-            if (row_count % 3 == 0) {
-                /* Reset and re-execute to test cursor restoration */
-                sqlite3_reset(pStmt);
-                sqlite3_step(pStmt);
-                
-                /* Skip ahead based on input data */
-                for (int skip = 0; skip < (packet->pagePosition % 4); skip++) {
-                    if (sqlite3_step(pStmt) != SQLITE_ROW) break;
+        case 1:
+            if (create_test_cursor(ctx, &stmt)) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 0);
+                    sqlite3_column_text(stmt, 1);
+                    sqlite3_column_int(stmt, 2);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 2:
+            sqlite3_exec(ctx->db, "BEGIN EXCLUSIVE;", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "COMMIT;", NULL, NULL, NULL);
+            break;
+            
+        case 3:
+            sqlite3_exec(ctx->db, "BEGIN DEFERRED;", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "COMMIT;", NULL, NULL, NULL);
+            break;
+            
+        case 4:
+            for (int i = 0; i < 3; i++) {
+                if (create_test_cursor(ctx, &stmt)) {
+                    sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
                 }
             }
+            break;
             
-            row_count++;
-        }
-        
-        sqlite3_finalize(pStmt);
+        case 5:
+            if (create_test_cursor(ctx, &stmt)) {
+                int count = 0;
+                while (sqlite3_step(stmt) == SQLITE_ROW && count < 10) {
+                    sqlite3_column_bytes(stmt, 1);
+                    count++;
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 6:
+            sqlite3_exec(ctx->db, "PRAGMA read_uncommitted=1;", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "PRAGMA read_uncommitted=0;", NULL, NULL, NULL);
+            break;
+            
+        case 7:
+            sqlite3_exec(ctx->db, "SAVEPOINT test_sp;", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "RELEASE SAVEPOINT test_sp;", NULL, NULL, NULL);
+            break;
+            
+        case 8:
+            if (create_test_cursor(ctx, &stmt)) {
+                for (int step = 0; step < 5 && sqlite3_step(stmt) == SQLITE_ROW; step++) {
+                    sqlite3_column_int64(stmt, 0);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 9:
+            if (packet.lockTimeout > 0) {
+                char pragma_sql[128];
+                snprintf(pragma_sql, sizeof(pragma_sql), "PRAGMA busy_timeout=%u;", packet.lockTimeout);
+                sqlite3_exec(ctx->db, pragma_sql, NULL, NULL, NULL);
+            }
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 10:
+            sqlite3_exec(ctx->db, "PRAGMA locking_mode=EXCLUSIVE;", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "PRAGMA locking_mode=NORMAL;", NULL, NULL, NULL);
+            break;
+            
+        case 11:
+            sqlite3_exec(ctx->db, "BEGIN IMMEDIATE;", NULL, NULL, NULL);
+            sqlite3_exec(ctx->db, "CREATE INDEX IF NOT EXISTS nav_idx ON nav_test(value);", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "COMMIT;", NULL, NULL, NULL);
+            break;
+            
+        case 12:
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_reset(stmt);
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 13:
+            sqlite3_exec(ctx->db, "PRAGMA cache_size=100;", NULL, NULL, NULL);
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 14:
+            if (create_test_cursor(ctx, &stmt)) {
+                sqlite3_step(stmt);
+                sqlite3_clear_bindings(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
     }
     
-    return SQLITE_OK;
+    return 1;
+}
+
+int fuzz_btree_last(FuzzCtx *ctx, const uint8_t *data, size_t size) {
+    if (!ctx || !data || size < 28) return 0;
+    
+    btree_last_packet packet;
+    memcpy(&packet, data, sizeof(packet));
+    
+    if (packet.scenario >= 10) return 0;
+    if (packet.navigationMode > 2) return 0;
+    
+    if (!setup_test_database_with_data(ctx, 25)) return 0;
+    
+    sqlite3_stmt *stmt = NULL;
+    const char *sql;
+    
+    switch (packet.scenario) {
+        case 0:
+            sql = "SELECT * FROM nav_test ORDER BY id DESC LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 1:
+            sql = "SELECT MAX(id) FROM nav_test";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_column_int(stmt, 0);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 2:
+            sql = "SELECT * FROM nav_test WHERE id = (SELECT MAX(id) FROM nav_test)";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 3:
+            sql = "SELECT * FROM nav_test ORDER BY value DESC, id DESC LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 4:
+            for (int order = 0; order < 2; order++) {
+                sql = (order == 0) ? "SELECT * FROM nav_test ORDER BY id DESC" : "SELECT * FROM nav_test ORDER BY id ASC";
+                if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                    sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
+                }
+            }
+            break;
+            
+        case 5:
+            sqlite3_exec(ctx->db, "DELETE FROM nav_test WHERE id > 20;", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY id DESC LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 6:
+            sqlite3_exec(ctx->db, "DELETE FROM nav_test;", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY id DESC LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                int rc = sqlite3_step(stmt);
+                if (rc == SQLITE_DONE) {
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 7:
+            sqlite3_exec(ctx->db, "BEGIN;", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY id DESC LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "COMMIT;", NULL, NULL, NULL);
+            break;
+            
+        case 8:
+            sql = "SELECT * FROM nav_test ORDER BY RANDOM() LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 9:
+            sqlite3_exec(ctx->db, "CREATE INDEX IF NOT EXISTS last_idx ON nav_test(id DESC);", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY id DESC LIMIT 1";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+            }
+            break;
+    }
+    
+    return 1;
+}
+
+int fuzz_btree_next(FuzzCtx *ctx, const uint8_t *data, size_t size) {
+    if (!ctx || !data || size < 24) return 0;
+    
+    btree_next_packet packet;
+    memcpy(&packet, data, sizeof(packet));
+    
+    if (packet.scenario >= 12) return 0;
+    if (packet.iterationMode > 3) return 0;
+    
+    if (!setup_test_database_with_data(ctx, 30)) return 0;
+    
+    sqlite3_stmt *stmt = NULL;
+    const char *sql;
+    
+    switch (packet.scenario) {
+        case 0:
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 0);
+                    sqlite3_column_text(stmt, 1);
+                    sqlite3_column_int(stmt, 2);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 1:
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                int count = 0;
+                while (sqlite3_step(stmt) == SQLITE_ROW && count < packet.maxIterations) {
+                    sqlite3_column_bytes(stmt, 1);
+                    count++;
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 2:
+            sql = "SELECT * FROM nav_test ORDER BY value";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int64(stmt, 0);
+                    sqlite3_column_double(stmt, 2);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 3:
+            sql = "SELECT * FROM nav_test WHERE id > ? ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_bind_int(stmt, 1, packet.startId);
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 0);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 4:
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                for (int step = 0; step < 5; step++) {
+                    int rc = sqlite3_step(stmt);
+                    if (rc != SQLITE_ROW) break;
+                    sqlite3_column_text(stmt, 1);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 5:
+            sqlite3_exec(ctx->db, "BEGIN;", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 0);
+                }
+                sqlite3_finalize(stmt);
+            }
+            sqlite3_exec(ctx->db, "COMMIT;", NULL, NULL, NULL);
+            break;
+            
+        case 6:
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                int rc = sqlite3_step(stmt);
+                if (rc == SQLITE_ROW) {
+                    sqlite3_reset(stmt);
+                    sqlite3_step(stmt);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 7:
+            sqlite3_exec(ctx->db, "CREATE INDEX IF NOT EXISTS nav_val_idx ON nav_test(value);", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY value";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 2);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 8:
+            sql = "SELECT * FROM nav_test WHERE data LIKE 'record_%' ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    const char *text = (const char*)sqlite3_column_text(stmt, 1);
+                    if (text) {
+                        size_t len = strlen(text);
+                        (void)len;
+                    }
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 9:
+            sqlite3_exec(ctx->db, "UPDATE nav_test SET value = value * 2 WHERE id <= 10;", NULL, NULL, NULL);
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 2);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+            
+        case 10:
+            for (int pass = 0; pass < 2; pass++) {
+                sql = "SELECT * FROM nav_test ORDER BY id";
+                if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                    sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
+                }
+            }
+            break;
+            
+        case 11:
+            sql = "SELECT COUNT(*), SUM(value) FROM nav_test";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                sqlite3_step(stmt);
+                sqlite3_column_int(stmt, 0);
+                sqlite3_column_int64(stmt, 1);
+                sqlite3_finalize(stmt);
+            }
+            sql = "SELECT * FROM nav_test ORDER BY id";
+            if (sqlite3_prepare_v2(ctx->db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                while (sqlite3_step(stmt) == SQLITE_ROW) {
+                    sqlite3_column_int(stmt, 0);
+                }
+                sqlite3_finalize(stmt);
+            }
+            break;
+    }
+    
+    return 1;
 }
