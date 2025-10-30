@@ -1,0 +1,57 @@
+{
+  "target": { 
+    "function": "sqlite3BtreeCreateTable",
+    "fc": "btree_create_table_001",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 10160
+  },
+  "struct_spec": {
+    "btree_create_table_packet": {
+      "createMode": "u8",
+      "scenario": "u8",
+      "flags": "u8",
+      "tableType": "u8",
+      "createFlags": "u32",
+      "pageSize": "u32",
+      "testParams": "u32[4]"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "create_modes": [0, 1, 2],
+    "table_types": [0, 1, 2, 3],
+    "create_flags": {"min": 0, "max": 255},
+    "page_sizes": [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
+    "max_scenarios": 14
+  },
+  "fc_mapping": {
+    "source": "btree.c:10160",
+    "rationale": "sqlite3BtreeCreateTable - Critical table creation with schema management",
+    "api_level": "public"
+  },
+  "constraints": {
+    "max_input_size": 4096,
+    "min_input_size": 28,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "Valid database connection",
+      "Transaction context",
+      "Schema modification permissions"
+    ],
+    "side_effects": [
+      "B-Tree structure creation",
+      "Root page allocation",
+      "Schema metadata updates"
+    ],
+    "error_conditions": [
+      "Page allocation failures",
+      "Schema conflicts",
+      "Transaction rollback scenarios"
+    ]
+  }
+}

@@ -112,6 +112,14 @@
 #define FUZZ_MODE_BTREE_LAST_NAV 0x72                 /* Target btreeLast navigation specifically */
 #define FUZZ_MODE_BTREE_NEXT_NAV 0x73                 /* Target btreeNext navigation specifically */
 
+/* B-Tree Advanced API Functions */
+#define FUZZ_MODE_SQLITE3_BTREE_BEGIN_STMT 0x74       /* Target sqlite3BtreeBeginStmt specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CHECKPOINT 0x75       /* Target sqlite3BtreeCheckpoint specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_COMMIT 0x76           /* Target sqlite3BtreeCommit specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_COUNT 0x77            /* Target sqlite3BtreeCount specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CREATE_TABLE 0x78     /* Target sqlite3BtreeCreateTable specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CURSOR_API 0x79       /* Target sqlite3BtreeCursor API specifically */
+
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
 #define BTALLOC_EXACT  1   /* Allocate exact page if possible */

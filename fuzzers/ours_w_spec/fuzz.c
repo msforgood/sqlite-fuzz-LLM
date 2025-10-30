@@ -38,6 +38,7 @@
 #include "btree_advanced_ops_harness.h"
 #include "high_impact_ops_harness.h"
 #include "btree_core_ops_harness.h"
+#include "btree_api_advanced_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -157,7 +158,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 108; /* 0-107 valid modes, added B-Tree Cursor Navigation harnesses */
+  cx.fuzzMode = fuzzSelector % 114; /* 0-113 valid modes, added B-Tree Advanced API harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -569,6 +570,36 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pBnPacket->startId;
     cx.allocMode = pBnPacket->iterationMode;
     cx.corruptionSeed = pBnPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_BEGIN_STMT && size >= sizeof(btree_begin_stmt_packet) ) {
+    const btree_begin_stmt_packet *pBsPacket = (const btree_begin_stmt_packet*)data;
+    cx.targetPgno = pBsPacket->iStatement;
+    cx.allocMode = pBsPacket->stmtMode;
+    cx.corruptionSeed = pBsPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CHECKPOINT && size >= sizeof(btree_checkpoint_packet) ) {
+    const btree_checkpoint_packet *pCpPacket = (const btree_checkpoint_packet*)data;
+    cx.targetPgno = pCpPacket->logSize;
+    cx.allocMode = pCpPacket->checkpointMode;
+    cx.corruptionSeed = pCpPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COMMIT && size >= sizeof(btree_commit_packet) ) {
+    const btree_commit_packet *pCmPacket = (const btree_commit_packet*)data;
+    cx.targetPgno = pCmPacket->changeCount;
+    cx.allocMode = pCmPacket->commitMode;
+    cx.corruptionSeed = pCmPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COUNT && size >= sizeof(btree_count_packet) ) {
+    const btree_count_packet *pCtPacket = (const btree_count_packet*)data;
+    cx.targetPgno = pCtPacket->scanLimit;
+    cx.allocMode = pCtPacket->countMode;
+    cx.corruptionSeed = pCtPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CREATE_TABLE && size >= sizeof(btree_create_table_packet) ) {
+    const btree_create_table_packet *pCrPacket = (const btree_create_table_packet*)data;
+    cx.targetPgno = pCrPacket->pageSize;
+    cx.allocMode = pCrPacket->createMode;
+    cx.corruptionSeed = pCrPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_API && size >= sizeof(btree_cursor_api_packet) ) {
+    const btree_cursor_api_packet *pCaPacket = (const btree_cursor_api_packet*)data;
+    cx.targetPgno = pCaPacket->iTable;
+    cx.allocMode = pCaPacket->cursorMode;
+    cx.corruptionSeed = pCaPacket->scenario;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -1396,6 +1427,42 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute B-Tree next navigation fuzzing */
     fuzz_btree_next(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_BEGIN_STMT && size >= sizeof(btree_begin_stmt_packet) ) {
+    const btree_begin_stmt_packet *pBsPacket = (const btree_begin_stmt_packet*)data;
+    cx.execCnt = (pBsPacket->testParams[0] % 12) + 1;
+    
+    /* Execute SQLite3 B-Tree begin stmt fuzzing */
+    fuzz_sqlite3_btree_begin_stmt(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CHECKPOINT && size >= sizeof(btree_checkpoint_packet) ) {
+    const btree_checkpoint_packet *pCpPacket = (const btree_checkpoint_packet*)data;
+    cx.execCnt = (pCpPacket->testParams[0] % 15) + 1;
+    
+    /* Execute SQLite3 B-Tree checkpoint fuzzing */
+    fuzz_sqlite3_btree_checkpoint(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COMMIT && size >= sizeof(btree_commit_packet) ) {
+    const btree_commit_packet *pCmPacket = (const btree_commit_packet*)data;
+    cx.execCnt = (pCmPacket->testParams[0] % 18) + 1;
+    
+    /* Execute SQLite3 B-Tree commit fuzzing */
+    fuzz_sqlite3_btree_commit(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COUNT && size >= sizeof(btree_count_packet) ) {
+    const btree_count_packet *pCtPacket = (const btree_count_packet*)data;
+    cx.execCnt = (pCtPacket->testParams[0] % 10) + 1;
+    
+    /* Execute SQLite3 B-Tree count fuzzing */
+    fuzz_sqlite3_btree_count(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CREATE_TABLE && size >= sizeof(btree_create_table_packet) ) {
+    const btree_create_table_packet *pCrPacket = (const btree_create_table_packet*)data;
+    cx.execCnt = (pCrPacket->testParams[0] % 14) + 1;
+    
+    /* Execute SQLite3 B-Tree create table fuzzing */
+    fuzz_sqlite3_btree_create_table(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_API && size >= sizeof(btree_cursor_api_packet) ) {
+    const btree_cursor_api_packet *pCaPacket = (const btree_cursor_api_packet*)data;
+    cx.execCnt = (pCaPacket->testParams[0] % 16) + 1;
+    
+    /* Execute SQLite3 B-Tree cursor API fuzzing */
+    fuzz_sqlite3_btree_cursor_api(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1485,6 +1552,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_CURSOR_WITH_LOCK_NAV ) packetSize = sizeof(btree_cursor_lock_packet);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_LAST_NAV ) packetSize = sizeof(btree_last_packet);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_NEXT_NAV ) packetSize = sizeof(btree_next_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_BEGIN_STMT ) packetSize = sizeof(btree_begin_stmt_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CHECKPOINT ) packetSize = sizeof(btree_checkpoint_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COMMIT ) packetSize = sizeof(btree_commit_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_COUNT ) packetSize = sizeof(btree_count_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CREATE_TABLE ) packetSize = sizeof(btree_create_table_packet);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CURSOR_API ) packetSize = sizeof(btree_cursor_api_packet);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
