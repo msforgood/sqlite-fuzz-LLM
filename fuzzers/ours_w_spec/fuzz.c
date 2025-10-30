@@ -34,6 +34,7 @@
 #include "parser_expr_harness.h"
 #include "vdbe_value_api_harness.h"
 #include "vdbe_result_api_harness.h"
+#include "btree_trans_mgmt_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -153,7 +154,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 83; /* 0-82 valid modes, added VDBE Result API harnesses */
+  cx.fuzzMode = fuzzSelector % 87; /* 0-86 valid modes, added B-Tree Transaction Management harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -440,6 +441,26 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pSsPacket->scanIndex;
     cx.allocMode = pSsPacket->scenario;
     cx.corruptionSeed = pSsPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_BEGIN_TRANS && size >= sizeof(BtreeBeginTransPacket) ) {
+    const BtreeBeginTransPacket *pBtPacket = (const BtreeBeginTransPacket*)data;
+    cx.targetPgno = pBtPacket->schemaVersion;
+    cx.allocMode = pBtPacket->scenario;
+    cx.corruptionSeed = pBtPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CLEAR_CURSOR && size >= sizeof(BtreeClearCursorPacket) ) {
+    const BtreeClearCursorPacket *pBccPacket = (const BtreeClearCursorPacket*)data;
+    cx.targetPgno = pBccPacket->pgnoRoot;
+    cx.allocMode = pBccPacket->scenario;
+    cx.corruptionSeed = pBccPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_RELEASE_PAGES && size >= sizeof(BtreeReleaseAllPagesPacket) ) {
+    const BtreeReleaseAllPagesPacket *pBrapPacket = (const BtreeReleaseAllPagesPacket*)data;
+    cx.targetPgno = pBrapPacket->cursorIndex;
+    cx.allocMode = pBrapPacket->scenario;
+    cx.corruptionSeed = pBrapPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_QUERY_SHARED_CACHE_LOCK && size >= sizeof(QuerySharedCacheLockPacket) ) {
+    const QuerySharedCacheLockPacket *pQsclPacket = (const QuerySharedCacheLockPacket*)data;
+    cx.targetPgno = pQsclPacket->tableNumber;
+    cx.allocMode = pQsclPacket->scenario;
+    cx.corruptionSeed = pQsclPacket->flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -592,6 +613,14 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ((const ResultZeroblob64Packet*)data)->scenario & 1 :
     (cx.fuzzMode == FUZZ_MODE_STMT_SCANSTATUS) ?
     ((const StmtScanstatusPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_BEGIN_TRANS) ?
+    ((const BtreeBeginTransPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_CLEAR_CURSOR) ?
+    ((const BtreeClearCursorPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_BTREE_RELEASE_PAGES) ?
+    ((const BtreeReleaseAllPagesPacket*)data)->scenario & 1 :
+    (cx.fuzzMode == FUZZ_MODE_QUERY_SHARED_CACHE_LOCK) ?
+    ((const QuerySharedCacheLockPacket*)data)->scenario & 1 :
     ((const BtreeAllocPacket*)data)->flags & 1;
   sqlite3_db_config(cx.db, SQLITE_DBCONFIG_ENABLE_FKEY, fkeyFlag, &rc);
   
@@ -1097,6 +1126,30 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute stmt scanstatus fuzzing */
     fuzz_stmt_scanstatus(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_BEGIN_TRANS && size >= sizeof(BtreeBeginTransPacket) ) {
+    const BtreeBeginTransPacket *pBtPacket = (const BtreeBeginTransPacket*)data;
+    cx.execCnt = (pBtPacket->testData[0] % 8) + 1;
+    
+    /* Execute B-Tree begin transaction fuzzing */
+    fuzz_btree_begin_trans(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_CLEAR_CURSOR && size >= sizeof(BtreeClearCursorPacket) ) {
+    const BtreeClearCursorPacket *pBccPacket = (const BtreeClearCursorPacket*)data;
+    cx.execCnt = (pBccPacket->testData[0] % 6) + 1;
+    
+    /* Execute B-Tree clear cursor fuzzing */
+    fuzz_btree_clear_cursor(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_BTREE_RELEASE_PAGES && size >= sizeof(BtreeReleaseAllPagesPacket) ) {
+    const BtreeReleaseAllPagesPacket *pBrapPacket = (const BtreeReleaseAllPagesPacket*)data;
+    cx.execCnt = (pBrapPacket->testData[0] % 6) + 1;
+    
+    /* Execute B-Tree release all pages fuzzing */
+    fuzz_btree_release_all_pages(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_QUERY_SHARED_CACHE_LOCK && size >= sizeof(QuerySharedCacheLockPacket) ) {
+    const QuerySharedCacheLockPacket *pQsclPacket = (const QuerySharedCacheLockPacket*)data;
+    cx.execCnt = (pQsclPacket->testData[0] % 8) + 1;
+    
+    /* Execute query shared cache lock fuzzing */
+    fuzz_query_shared_cache_lock(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;

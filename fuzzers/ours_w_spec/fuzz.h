@@ -82,6 +82,10 @@
 #define FUZZ_MODE_RESULT_TEXT16 0x58  /* Target sqlite3_result_text16 specifically */
 #define FUZZ_MODE_RESULT_ZEROBLOB64 0x59  /* Target sqlite3_result_zeroblob64 specifically */
 #define FUZZ_MODE_STMT_SCANSTATUS 0x5A  /* Target sqlite3_stmt_scanstatus specifically */
+#define FUZZ_MODE_BTREE_BEGIN_TRANS 0x5B  /* Target sqlite3BtreeBeginTrans specifically */
+#define FUZZ_MODE_BTREE_CLEAR_CURSOR 0x5C  /* Target sqlite3BtreeClearCursor specifically */
+#define FUZZ_MODE_BTREE_RELEASE_PAGES 0x5D  /* Target btreeReleaseAllCursorPages specifically */
+#define FUZZ_MODE_QUERY_SHARED_CACHE_LOCK 0x5E  /* Target querySharedCacheTableLock specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
