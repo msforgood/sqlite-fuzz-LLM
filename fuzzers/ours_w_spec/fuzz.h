@@ -73,6 +73,9 @@
 #define FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR 0x4F  /* Target sqlite3VdbeAddDblquoteStr specifically */
 #define FUZZ_MODE_VDBE_ADD_FUNCTION_CALL 0x50  /* Target sqlite3VdbeAddFunctionCall specifically */
 #define FUZZ_MODE_VDBE_ADD_OP4_DUP8 0x51  /* Target sqlite3VdbeAddOp4Dup8 specifically */
+#define FUZZ_MODE_EXPR_ATTACH_SUBTREES 0x52  /* Target sqlite3ExprAttachSubtrees specifically */
+#define FUZZ_MODE_NESTED_PARSE 0x53  /* Target sqlite3NestedParse specifically */
+#define FUZZ_MODE_TABLE_LOCK 0x54  /* Target sqlite3TableLock specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */

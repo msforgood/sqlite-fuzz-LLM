@@ -31,6 +31,7 @@
 #include "vdbe_record_harness.h"
 #include "query_where_harness.h"
 #include "parser_advanced_harness.h"
+#include "parser_expr_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -142,7 +143,9 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       size < sizeof(MovetoPacket) && size < sizeof(OverwriteCellPacket) &&
       size < sizeof(OverwriteContentPacket) &&
       size < sizeof(ColumnMallocFailurePacket) && size < sizeof(FreeP4Packet) &&
-      size < sizeof(AssertFieldCountPacket) ) return 0;
+      size < sizeof(AssertFieldCountPacket) &&
+      size < sizeof(ExprAttachSubtreesPacket) && size < sizeof(NestedParsePacket) &&
+      size < sizeof(TableLockPacket) ) return 0;
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
@@ -378,21 +381,31 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pBpcpnpPacket->keyValue;
     cx.allocMode = pBpcpnpPacket->scenario;
     cx.corruptionSeed = pBpcpnpPacket->varintBytes;
-  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR && size >= sizeof(VdbeAddDblquoteStrPacket) ) {
-    const VdbeAddDblquoteStrPacket *pVadsPacket = (const VdbeAddDblquoteStrPacket*)data;
-    cx.targetPgno = pVadsPacket->stringLength;
-    cx.allocMode = pVadsPacket->scenario;
-    cx.corruptionSeed = pVadsPacket->memoryPressure;
   } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL && size >= sizeof(VdbeAddFunctionCallPacket) ) {
     const VdbeAddFunctionCallPacket *pVafcPacket = (const VdbeAddFunctionCallPacket*)data;
     cx.targetPgno = pVafcPacket->constantMask;
     cx.allocMode = pVafcPacket->scenario;
-    cx.corruptionSeed = pVafcPacket->argumentCount;
+    cx.corruptionSeed = pVafcPacket->scenario;
   } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 && size >= sizeof(VdbeAddOp4Dup8Packet) ) {
     const VdbeAddOp4Dup8Packet *pVaodPacket = (const VdbeAddOp4Dup8Packet*)data;
     cx.targetPgno = pVaodPacket->opcode;
     cx.allocMode = pVaodPacket->scenario;
-    cx.corruptionSeed = pVaodPacket->p4type;
+    cx.corruptionSeed = pVaodPacket->p4Type;
+  } else if( cx.fuzzMode == FUZZ_MODE_EXPR_ATTACH_SUBTREES && size >= sizeof(ExprAttachSubtreesPacket) ) {
+    const ExprAttachSubtreesPacket *pEasPacket = (const ExprAttachSubtreesPacket*)data;
+    cx.targetPgno = pEasPacket->rootFlags;
+    cx.allocMode = pEasPacket->scenario;
+    cx.corruptionSeed = pEasPacket->treeDepth;
+  } else if( cx.fuzzMode == FUZZ_MODE_NESTED_PARSE && size >= sizeof(NestedParsePacket) ) {
+    const NestedParsePacket *pNpPacket = (const NestedParsePacket*)data;
+    cx.targetPgno = pNpPacket->sqlLength;
+    cx.allocMode = pNpPacket->scenario;
+    cx.corruptionSeed = pNpPacket->nestingDepth;
+  } else if( cx.fuzzMode == FUZZ_MODE_TABLE_LOCK && size >= sizeof(TableLockPacket) ) {
+    const TableLockPacket *pTlPacket = (const TableLockPacket*)data;
+    cx.targetPgno = pTlPacket->pageNumber;
+    cx.allocMode = pTlPacket->scenario;
+    cx.corruptionSeed = pTlPacket->databaseIndex;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -972,12 +985,6 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute B-Tree parse cell ptr no payload fuzzing */
     fuzz_btree_parse_cell_ptr_no_payload(&cx, data, size);
-  } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR && size >= sizeof(VdbeAddDblquoteStrPacket) ) {
-    const VdbeAddDblquoteStrPacket *pVadsPacket = (const VdbeAddDblquoteStrPacket*)data;
-    cx.execCnt = (pVadsPacket->testString[0] % 25) + 1;
-    
-    /* Execute VDBE add dblquote string fuzzing */
-    fuzz_vdbe_add_dblquote_str(&cx, data, size);
   } else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL && size >= sizeof(VdbeAddFunctionCallPacket) ) {
     const VdbeAddFunctionCallPacket *pVafcPacket = (const VdbeAddFunctionCallPacket*)data;
     cx.execCnt = (pVafcPacket->scenario % 30) + 1;
@@ -990,6 +997,24 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute VDBE add op4 dup8 fuzzing */
     fuzz_vdbe_add_op4_dup8(&cx, pVaodPacket);
+  } else if( cx.fuzzMode == FUZZ_MODE_EXPR_ATTACH_SUBTREES && size >= sizeof(ExprAttachSubtreesPacket) ) {
+    const ExprAttachSubtreesPacket *pEasPacket = (const ExprAttachSubtreesPacket*)data;
+    cx.execCnt = (pEasPacket->exprData[0] % 25) + 1;
+    
+    /* Execute expression attach subtrees fuzzing */
+    fuzz_expr_attach_subtrees(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_NESTED_PARSE && size >= sizeof(NestedParsePacket) ) {
+    const NestedParsePacket *pNpPacket = (const NestedParsePacket*)data;
+    cx.execCnt = (pNpPacket->formatString[0] % 30) + 1;
+    
+    /* Execute nested parse fuzzing */
+    fuzz_nested_parse(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_TABLE_LOCK && size >= sizeof(TableLockPacket) ) {
+    const TableLockPacket *pTlPacket = (const TableLockPacket*)data;
+    cx.execCnt = (pTlPacket->tableName[0] % 20) + 1;
+    
+    /* Execute table lock fuzzing */
+    fuzz_table_lock(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1056,9 +1081,11 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_OVERWRITE_OVERFLOW_CELL ) packetSize = sizeof(BtreeOverwriteOverflowCellPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_INDEX ) packetSize = sizeof(BtreeParseCellPtrIndexPacket);
   else if( cx.fuzzMode == FUZZ_MODE_BTREE_PARSE_CELL_PTR_NO_PAYLOAD ) packetSize = sizeof(BtreeParseCellPtrNoPayloadPacket);
-  else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_DBLQUOTE_STR ) packetSize = sizeof(VdbeAddDblquoteStrPacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_FUNCTION_CALL ) packetSize = sizeof(VdbeAddFunctionCallPacket);
   else if( cx.fuzzMode == FUZZ_MODE_VDBE_ADD_OP4_DUP8 ) packetSize = sizeof(VdbeAddOp4Dup8Packet);
+  else if( cx.fuzzMode == FUZZ_MODE_EXPR_ATTACH_SUBTREES ) packetSize = sizeof(ExprAttachSubtreesPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_NESTED_PARSE ) packetSize = sizeof(NestedParsePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_TABLE_LOCK ) packetSize = sizeof(TableLockPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;
