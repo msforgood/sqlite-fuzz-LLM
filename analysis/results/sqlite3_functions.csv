@@ -48,7 +48,7 @@ clearDatabasePage,btree.c,10172,int,B-Tree,Index Management,Critical,Medium,Fals
 corruptPageError,btree.c,136,int,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"int corruptPageError(int lineno, MemPage *p){", False
 cursorOnLastPage,btree.c,5964,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int cursorOnLastPage(BtCursor *pCur){, True
 defragmentPage,btree.c,1613,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int defragmentPage(MemPage *pPage, int nMaxFrag){", True
-downgradeAllSharedCacheTableLocks,btree.c,513,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void downgradeAllSharedCacheTableLocks(Btree *p){, False
+downgradeAllSharedCacheTableLocks,btree.c,513,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void downgradeAllSharedCacheTableLocks(Btree *p){, True
 editPage,btree.c,7834,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int editPage(, False
 freePage,btree.c,6931,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void freePage(MemPage *pPage, int *pRC){", True
 freePage2,btree.c,6797,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int freePage2(BtShared *pBt, MemPage *pMemPage, Pgno iPage){", False
@@ -83,7 +83,7 @@ sqlite3BtreeBeginTrans,btree.c,3777,int,B-Tree,Index Management,Critical,High,Tr
 sqlite3BtreeCheckpoint,btree.c,11296,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCheckpoint(Btree *p, int eMode, int *pnLog, int *pnCkpt){", False
 sqlite3BtreeClearCache,btree.c,11520,void,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,void sqlite3BtreeClearCache(Btree *p){, False
 sqlite3BtreeClearCursor,btree.c,848,void,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,void sqlite3BtreeClearCursor(BtCursor *pCur){, True
-sqlite3BtreeClearTable,btree.c,10239,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeClearTable(Btree *p, int iTable, i64 *pnChange){", False
+sqlite3BtreeClearTable,btree.c,10239,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeClearTable(Btree *p, int iTable, i64 *pnChange){", True
 sqlite3BtreeClearTable,btree.c,10266,return,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"return sqlite3BtreeClearTable(pCur->pBtree, pCur->pgnoRoot, 0);", False
 sqlite3BtreeClearTableOfCursor,btree.c,10265,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeClearTableOfCursor(BtCursor *pCur){, False
 sqlite3BtreeClose,btree.c,2917,int,B-Tree,Database Connection,Critical,Medium,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeClose(Btree *p){, False
@@ -194,7 +194,7 @@ lookasideMallocSize,malloc.c,369,int,Memory,Memory Management,Critical,Medium,Fa
 mallocWithAlarm,malloc.c,246,void,Memory,Memory Management,Critical,Low,False,True,Memory Management function in Memory subsystem,"static void mallocWithAlarm(int n, void **pp){", False
 sqlite3DbFree,malloc.c,516,void,Memory,Memory Management,Critical,Low,True,False,Memory Management function in Memory subsystem,"void sqlite3DbFree(sqlite3 *db, void *p){", False
 sqlite3DbFreeNN,malloc.c,440,void,Memory,Memory Management,Critical,Low,True,False,Memory Management function in Memory subsystem,"void sqlite3DbFreeNN(sqlite3 *db, void *p){", False
-sqlite3DbMallocSize,malloc.c,376,int,Memory,Memory Management,Critical,Medium,True,False,Memory Management function in Memory subsystem,"int sqlite3DbMallocSize(sqlite3 *db, const void *p){", False
+sqlite3DbMallocSize,malloc.c,376,int,Memory,Memory Management,Critical,Medium,True,False,Memory Management function in Memory subsystem,"int sqlite3DbMallocSize(sqlite3 *db, const void *p){", True
 sqlite3DbNNFreeNN,malloc.c,479,void,Memory,Memory Management,Critical,Medium,True,False,Memory Management function in Memory subsystem,"void sqlite3DbNNFreeNN(sqlite3 *db, void *p){", False
 sqlite3Malloc,malloc.c,347,return,Memory,Memory Management,Critical,Low,True,False,Memory Management function in Memory subsystem,return sqlite3Malloc(n);, False
 sqlite3Malloc,malloc.c,530,return,Memory,Memory Management,Critical,Low,True,False,Memory Management function in Memory subsystem,return sqlite3Malloc(nBytes); /* IMP: R-04300-56712 */, False
@@ -424,12 +424,12 @@ sqlite3VdbeRecordCompare,vdbesort.c,801,return,Other,Unknown,Critical,High,True,
 sqlite3VdbeRecordCompareWithSkip,vdbesort.c,774,return,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,"return sqlite3VdbeRecordCompareWithSkip(nKey1, pKey1, r2, 1);", False
 sqlite3VdbeSorterClose,vdbesort.c,1280,void,Other,Database Connection,Critical,High,True,False,Database Connection function in Other subsystem,"void sqlite3VdbeSorterClose(sqlite3 *db, VdbeCursor *pCsr){", False
 sqlite3VdbeSorterCompare,vdbesort.c,2762,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,int sqlite3VdbeSorterCompare(, False
-sqlite3VdbeSorterInit,vdbesort.c,936,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,int sqlite3VdbeSorterInit(, False
+sqlite3VdbeSorterInit,vdbesort.c,936,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,int sqlite3VdbeSorterInit(, True
 sqlite3VdbeSorterNext,vdbesort.c,2664,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,"int sqlite3VdbeSorterNext(sqlite3 *db, const VdbeCursor *pCsr){", False
 sqlite3VdbeSorterReset,vdbesort.c,1247,void,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,"void sqlite3VdbeSorterReset(sqlite3 *db, VdbeSorter *pSorter){", False
 sqlite3VdbeSorterRewind,vdbesort.c,2612,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,"int sqlite3VdbeSorterRewind(const VdbeCursor *pCsr, int *pbEof){", False
 sqlite3VdbeSorterRowkey,vdbesort.c,2729,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,"int sqlite3VdbeSorterRowkey(const VdbeCursor *pCsr, Mem *pOut){", False
-sqlite3VdbeSorterWrite,vdbesort.c,1797,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,int sqlite3VdbeSorterWrite(, False
+sqlite3VdbeSorterWrite,vdbesort.c,1797,int,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,int sqlite3VdbeSorterWrite(, True
 sqlite3VtabBeginParse,vtab.c,385,void,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,void sqlite3VtabBeginParse(, False
 sqlite3VtabCommit,vtab.c,1029,int,Other,Unknown,Critical,Medium,True,False,Unknown function in Other subsystem,int sqlite3VtabCommit(sqlite3 *db){, False
 sqlite3VtabFinishParse,vtab.c,447,void,Other,Unknown,Critical,High,True,False,Unknown function in Other subsystem,"void sqlite3VtabFinishParse(Parse *pParse, Token *pEnd){", False
@@ -1139,7 +1139,7 @@ sqlite3WhereClauseInit,whereexpr.c,1722,void,Other,Unknown,High,High,True,False,
 sqlite3WhereCodeOneLoopStart,wherecode.c,1466,Bitmask,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,Bitmask sqlite3WhereCodeOneLoopStart(, False
 sqlite3WhereExplainBloomFilter,wherecode.c,280,int,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,int sqlite3WhereExplainBloomFilter(, False
 sqlite3WhereExplainOneScan,wherecode.c,245,int,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,int sqlite3WhereExplainOneScan(, False
-sqlite3WhereExprAnalyze,whereexpr.c,1863,void,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,void sqlite3WhereExprAnalyze(, False
+sqlite3WhereExprAnalyze,whereexpr.c,1863,void,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,void sqlite3WhereExprAnalyze(, True
 sqlite3WhereExprListUsage,whereexpr.c,1843,Bitmask,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,"Bitmask sqlite3WhereExprListUsage(WhereMaskSet *pMaskSet, ExprList *pList){", False
 sqlite3WhereExprUsage,whereexpr.c,1840,Bitmask,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,"Bitmask sqlite3WhereExprUsage(WhereMaskSet *pMaskSet, Expr *p){", False
 sqlite3WhereExprUsageFull,whereexpr.c,1838,return,Other,Unknown,High,High,True,False,Unknown function in Other subsystem,"return sqlite3WhereExprUsageFull(pMaskSet, p);", False

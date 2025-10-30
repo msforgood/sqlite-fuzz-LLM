@@ -36,6 +36,7 @@
 #include "vdbe_result_api_harness.h"
 #include "btree_trans_mgmt_harness.h"
 #include "btree_advanced_ops_harness.h"
+#include "high_impact_ops_harness.h"
 
 /* Global debugging settings */
 static unsigned mDebug = 0;
@@ -155,7 +156,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   
   /* Determine fuzzing mode based on first byte */
   uint8_t fuzzSelector = data[0];
-  cx.fuzzMode = fuzzSelector % 93; /* 0-92 valid modes, added B-Tree Advanced Operations harnesses */
+  cx.fuzzMode = fuzzSelector % 99; /* 0-98 valid modes, added High-Impact Operations harnesses */
   
   /* Parse appropriate packet based on mode */
   if( cx.fuzzMode == FUZZ_MODE_AUTOVACUUM && size >= sizeof(AutoVacuumPacket) ) {
@@ -492,6 +493,36 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     cx.targetPgno = pSccPacket->lockCount;
     cx.allocMode = pSccPacket->scenario;
     cx.corruptionSeed = pSccPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLEAR_TABLE && size >= sizeof(BtreeClearTablePacket) ) {
+    const BtreeClearTablePacket *pBctPacket = (const BtreeClearTablePacket*)data;
+    cx.targetPgno = pBctPacket->iTable;
+    cx.allocMode = pBctPacket->clearMode;
+    cx.corruptionSeed = pBctPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_INIT && size >= sizeof(VdbeSorterInitPacket) ) {
+    const VdbeSorterInitPacket *pVsiPacket = (const VdbeSorterInitPacket*)data;
+    cx.targetPgno = pVsiPacket->nField;
+    cx.allocMode = pVsiPacket->scenario;
+    cx.corruptionSeed = pVsiPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_WHERE_EXPR_ANALYZE && size >= sizeof(WhereExprAnalyzePacket) ) {
+    const WhereExprAnalyzePacket *pWeaPacket = (const WhereExprAnalyzePacket*)data;
+    cx.targetPgno = pWeaPacket->exprType;
+    cx.allocMode = pWeaPacket->exprDepth;
+    cx.corruptionSeed = pWeaPacket->scenario;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_WRITE && size >= sizeof(VdbeSorterWritePacket) ) {
+    const VdbeSorterWritePacket *pVswPacket = (const VdbeSorterWritePacket*)data;
+    cx.targetPgno = pVswPacket->recordSize;
+    cx.allocMode = pVswPacket->scenario;
+    cx.corruptionSeed = pVswPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE && size >= sizeof(DbMallocSizePacket) ) {
+    const DbMallocSizePacket *pDmsPacket = (const DbMallocSizePacket*)data;
+    cx.targetPgno = pDmsPacket->ptrOffset;
+    cx.allocMode = pDmsPacket->scenario;
+    cx.corruptionSeed = pDmsPacket->flags;
+  } else if( cx.fuzzMode == FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS && size >= sizeof(DowngradeLocksPacket) ) {
+    const DowngradeLocksPacket *pDlPacket = (const DowngradeLocksPacket*)data;
+    cx.targetPgno = pDlPacket->lockCount;
+    cx.allocMode = pDlPacket->scenario;
+    cx.corruptionSeed = pDlPacket->flags;
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.fuzzMode = pPacket->mode % 6; /* 0-5 valid modes */
@@ -1229,6 +1260,42 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     
     /* Execute clear shared cache locks fuzzing */
     fuzz_clear_all_shared_cache_locks(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLEAR_TABLE && size >= sizeof(BtreeClearTablePacket) ) {
+    const BtreeClearTablePacket *pBctPacket = (const BtreeClearTablePacket*)data;
+    cx.execCnt = (pBctPacket->testData[0] % 12) + 1;
+    
+    /* Execute SQLite3 B-Tree clear table fuzzing */
+    fuzz_sqlite3_btree_clear_table(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_INIT && size >= sizeof(VdbeSorterInitPacket) ) {
+    const VdbeSorterInitPacket *pVsiPacket = (const VdbeSorterInitPacket*)data;
+    cx.execCnt = (pVsiPacket->testData[0] % 8) + 1;
+    
+    /* Execute SQLite3 VDBE sorter init fuzzing */
+    fuzz_sqlite3_vdbe_sorter_init(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_WHERE_EXPR_ANALYZE && size >= sizeof(WhereExprAnalyzePacket) ) {
+    const WhereExprAnalyzePacket *pWeaPacket = (const WhereExprAnalyzePacket*)data;
+    cx.execCnt = (pWeaPacket->testParams[0] % 10) + 1;
+    
+    /* Execute SQLite3 WHERE expression analyze fuzzing */
+    fuzz_sqlite3_where_expr_analyze(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_WRITE && size >= sizeof(VdbeSorterWritePacket) ) {
+    const VdbeSorterWritePacket *pVswPacket = (const VdbeSorterWritePacket*)data;
+    cx.execCnt = (pVswPacket->testParams[0] % 8) + 1;
+    
+    /* Execute SQLite3 VDBE sorter write fuzzing */
+    fuzz_sqlite3_vdbe_sorter_write(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE && size >= sizeof(DbMallocSizePacket) ) {
+    const DbMallocSizePacket *pDmsPacket = (const DbMallocSizePacket*)data;
+    cx.execCnt = (pDmsPacket->testData[0] % 6) + 1;
+    
+    /* Execute SQLite3 DB malloc size fuzzing */
+    fuzz_sqlite3_db_malloc_size(&cx, data, size);
+  } else if( cx.fuzzMode == FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS && size >= sizeof(DowngradeLocksPacket) ) {
+    const DowngradeLocksPacket *pDlPacket = (const DowngradeLocksPacket*)data;
+    cx.execCnt = (pDlPacket->testData[0] % 8) + 1;
+    
+    /* Execute downgrade all shared cache locks fuzzing */
+    fuzz_downgrade_all_shared_cache_locks(&cx, data, size);
   } else if( size >= sizeof(BtreeAllocPacket) ) {
     const BtreeAllocPacket *pPacket = (const BtreeAllocPacket*)data;
     cx.execCnt = (pPacket->payload[0] % 50) + 1;
@@ -1303,6 +1370,12 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   else if( cx.fuzzMode == FUZZ_MODE_VALUE_BYTES16 ) packetSize = sizeof(ValueBytes16Packet);
   else if( cx.fuzzMode == FUZZ_MODE_VALUE_NOCHANGE ) packetSize = sizeof(ValueNochangePacket);
   else if( cx.fuzzMode == FUZZ_MODE_VTAB_IN_FIRST ) packetSize = sizeof(VtabInFirstPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_BTREE_CLEAR_TABLE ) packetSize = sizeof(BtreeClearTablePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_INIT ) packetSize = sizeof(VdbeSorterInitPacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_WHERE_EXPR_ANALYZE ) packetSize = sizeof(WhereExprAnalyzePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_VDBE_SORTER_WRITE ) packetSize = sizeof(VdbeSorterWritePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE ) packetSize = sizeof(DbMallocSizePacket);
+  else if( cx.fuzzMode == FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS ) packetSize = sizeof(DowngradeLocksPacket);
   if( size > packetSize ) {
     size_t sqlLen = size - packetSize;
     const uint8_t *sqlData = data + packetSize;

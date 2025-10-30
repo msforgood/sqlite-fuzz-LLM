@@ -1,0 +1,60 @@
+{
+  "target": { 
+    "function": "sqlite3WhereExprAnalyze",
+    "fc": "where_expr_001",
+    "category": "Query",
+    "file": "whereexpr.c",
+    "line": 1863
+  },
+  "struct_spec": {
+    "where_expr_analyze_packet": {
+      "exprType": "u8",
+      "exprDepth": "u8",
+      "scenario": "u8",
+      "flags": "u8",
+      "tableCount": "u8",
+      "termCount": "u8",
+      "opType": "u8",
+      "exprData": "u8[64]",
+      "testParams": "u32[8]"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "expr_types": [1, 2, 3, 4, 5, 6, 7, 8],
+    "expr_depth": {"min": 1, "max": 50},
+    "table_count": {"min": 1, "max": 20},
+    "term_count": {"min": 1, "max": 100},
+    "op_types": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "max_scenarios": 15
+  },
+  "fc_mapping": {
+    "source": "whereexpr.c:1863",
+    "rationale": "sqlite3WhereExprAnalyze - Critical WHERE clause expression analysis with recursive parsing",
+    "api_level": "internal"
+  },
+  "constraints": {
+    "max_input_size": 8192,
+    "min_input_size": 48,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "Valid SrcList structure",
+      "Valid WhereClause structure",
+      "Expression tree properly formed"
+    ],
+    "side_effects": [
+      "Expression tree traversal",
+      "Constraint term generation",
+      "Memory allocation for analysis"
+    ],
+    "error_conditions": [
+      "Stack overflow with deep expressions",
+      "SQLITE_NOMEM: Out of memory",
+      "Malformed expression tree"
+    ]
+  }
+}

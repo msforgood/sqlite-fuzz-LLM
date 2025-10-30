@@ -92,6 +92,12 @@
 #define FUZZ_MODE_BTREE_INSERT 0x62  /* Target sqlite3BtreeInsert specifically */
 #define FUZZ_MODE_BTREE_INDEX_MOVETO 0x63  /* Target sqlite3BtreeIndexMoveto specifically */
 #define FUZZ_MODE_CLEAR_SHARED_CACHE_LOCKS 0x64  /* Target clearAllSharedCacheTableLocks specifically */
+#define FUZZ_MODE_SQLITE3_BTREE_CLEAR_TABLE 0x65  /* Target sqlite3BtreeClearTable specifically */
+#define FUZZ_MODE_SQLITE3_VDBE_SORTER_INIT 0x66  /* Target sqlite3VdbeSorterInit specifically */
+#define FUZZ_MODE_SQLITE3_WHERE_EXPR_ANALYZE 0x67  /* Target sqlite3WhereExprAnalyze specifically */
+#define FUZZ_MODE_SQLITE3_VDBE_SORTER_WRITE 0x68  /* Target sqlite3VdbeSorterWrite specifically */
+#define FUZZ_MODE_SQLITE3_DB_MALLOC_SIZE 0x69  /* Target sqlite3DbMallocSize specifically */
+#define FUZZ_MODE_DOWNGRADE_SHARED_CACHE_LOCKS 0x6A  /* Target downgradeAllSharedCacheTableLocks specifically */
 
 /* Allocation mode values from btree.c */
 #define BTALLOC_ANY    0   /* Allocate any page */
