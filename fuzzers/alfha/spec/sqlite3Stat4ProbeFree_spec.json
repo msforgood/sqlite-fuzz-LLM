@@ -1,0 +1,78 @@
+{
+  "target": { 
+    "function": "sqlite3Stat4ProbeFree",
+    "fc": "vdbe_016",
+    "category": "VDBE",
+    "file": "vdbemem.c",
+    "line": 1993
+  },
+  "struct_spec": {
+    "unpacked_record": {
+      "pKeyInfo": "KeyInfo*",
+      "aMem": "Mem*",
+      "nField": "u16",
+      "default_rc": "int",
+      "errCode": "u8",
+      "r1": "u8",
+      "r2": "u8"
+    },
+    "keyinfo": {
+      "nAllField": "u32",
+      "nKeyField": "u16",
+      "nRef": "u32",
+      "db": "sqlite3*",
+      "enc": "u8",
+      "aSortFlags": "u8*",
+      "aColl": "CollSeq**"
+    },
+    "mem": {
+      "db": "sqlite3*",
+      "z": "char*",
+      "zMalloc": "char*",
+      "szMalloc": "int",
+      "uTemp": "u32",
+      "flags": "u16",
+      "eSubtype": "u8",
+      "n": "int"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "field_count": {"min": 0, "max": 2000},
+    "memory_size": {"min": 0, "max": 1000000000},
+    "null_pointer_handling": true,
+    "reference_counting": true,
+    "memory_leak_prevention": true
+  },
+  "fc_mapping": {
+    "source": "vdbemem.c:1993",
+    "rationale": "sqlite3Stat4ProbeFree - Critical STAT4 probe memory cleanup function",
+    "api_level": "public"
+  },
+  "constraints": {
+    "max_input_size": 4096,
+    "min_input_size": 8,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "sqlite3_initialize() called",
+      "Valid UnpackedRecord pointer or NULL",
+      "KeyInfo properly initialized",
+      "Mem array properly allocated"
+    ],
+    "side_effects": [
+      "Memory freed for all fields",
+      "KeyInfo reference decremented",
+      "UnpackedRecord memory released",
+      "Database memory counter updated"
+    ],
+    "error_conditions": [
+      "Corrupted memory structure",
+      "Invalid field count",
+      "Double-free protection needed"
+    ]
+  }
+}

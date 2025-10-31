@@ -1,0 +1,68 @@
+{
+  "target": { 
+    "function": "btreeParseCellPtrNoPayload",
+    "fc": "btree_parse_003",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 1242
+  },
+  "struct_spec": {
+    "mem_page": {
+      "isInit": "u8",
+      "intKey": "u8",
+      "intKeyLeaf": "u8",
+      "leaf": "u8",
+      "pgno": "Pgno",
+      "childPtrSize": "u8",
+      "pBt": "BtShared*",
+      "aData": "u8*"
+    },
+    "cell_info": {
+      "nKey": "i64",
+      "pPayload": "u8*",
+      "nPayload": "u32",
+      "nSize": "u16",
+      "pCell": "u8*"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "page_type": "INTERIOR_NON_LEAF",
+    "child_ptr_size": 4,
+    "cell_size": {"min": 4, "max": 13},
+    "varint_bytes": {"min": 1, "max": 9},
+    "leaf_flag": false
+  },
+  "fc_mapping": {
+    "source": "btree.c:1242",
+    "rationale": "btreeParseCellPtrNoPayload - Critical parsing for interior pages without payload",
+    "api_level": "internal",
+    "complexity": "high"
+  },
+  "constraints": {
+    "max_input_size": 4096,
+    "min_input_size": 16,
+    "endianness": "BE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true,
+    "requires_interior_page": true
+  },
+  "notes": {
+    "preconditions": [
+      "Page must be initialized",
+      "Page must be interior (non-leaf) node",
+      "Child pointer size must be 4 bytes",
+      "Mutex must be held on BtShared"
+    ],
+    "side_effects": [
+      "CellInfo structure populated",
+      "Only nKey and nSize fields set",
+      "No database modification"
+    ],
+    "error_conditions": [
+      "Invalid page type",
+      "Incorrect child pointer size",
+      "Corrupt varint encoding"
+    ]
+  }
+}

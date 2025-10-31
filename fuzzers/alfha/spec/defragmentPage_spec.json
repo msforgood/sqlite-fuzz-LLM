@@ -1,0 +1,69 @@
+{
+  "target": {
+    "function": "defragmentPage", 
+    "fc": "btree_004",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 2133
+  },
+  "struct_spec": {
+    "mempage": {
+      "pBt": "BtShared*",
+      "pgno": "Pgno",
+      "pDbPage": "DbPage*", 
+      "pData": "unsigned char*",
+      "nOverflow": "u8",
+      "cellOffset": "u16",
+      "nFree": "u16",
+      "nCell": "u16", 
+      "maskPage": "u16",
+      "aiOvfl": "u16[4]",
+      "pParent": "MemPage*",
+      "idx": "u16"
+    },
+    "defrag_params": {
+      "cursorHint": "int"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "page_size": [512, 65536],
+    "pgno_range": {"min": 1, "max": 4294967295},
+    "cell_count": {"min": 0, "max": 32767},
+    "free_space": {"min": 0, "max": 65536},
+    "fragmentation_threshold": {"min": 0, "max": 65536},
+    "cursor_hint": {"min": -1, "max": 32767},
+    "requires_initialization": true
+  },
+  "fc_mapping": {
+    "source": "btree.c:2133",
+    "rationale": "defragmentPage - Critical B-Tree page defragmentation function",
+    "api_level": "internal"
+  },
+  "constraints": {
+    "max_input_size": 4096,
+    "min_input_size": 32,
+    "endianness": "LE", 
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "sqlite3_initialize() called",
+      "Valid MemPage with fragmented cells",
+      "Page is writable",
+      "No active cursors on page (or cursor hint provided)"
+    ],
+    "side_effects": [
+      "Cell content physically moved in page",
+      "Free space consolidated",
+      "Cell offsets updated",
+      "Page checksum may change"
+    ],
+    "error_conditions": [
+      "SQLITE_CORRUPT: Page structure corrupted",
+      "SQLITE_IOERR: I/O error during defragmentation",
+      "SQLITE_NOMEM: Memory allocation failure"
+    ]
+  }
+}

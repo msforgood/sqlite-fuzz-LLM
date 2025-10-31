@@ -1,0 +1,103 @@
+{
+  "target": {
+    "function": "autoVacuumCommit",
+    "fc": "btree_002",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 4174
+  },
+  "struct_spec": {
+    "btree": {
+      "db": "sqlite3*",
+      "pBt": "BtShared*",
+      "inTrans": "u8",
+      "sharable": "u8",
+      "locked": "u8",
+      "hasIncrblobCur": "u8",
+      "wantToLock": "int",
+      "nBackup": "int",
+      "iBDataVersion": "u32"
+    },
+    "btshared": {
+      "pPager": "Pager*",
+      "db": "sqlite3*",
+      "pCursor": "BtCursor*",
+      "pPage1": "MemPage*",
+      "openFlags": "u8",
+      "autoVacuum": "u8",
+      "incrVacuum": "u8",
+      "bDoTruncate": "u8",
+      "inTransaction": "u8",
+      "max1bytePayload": "u8",
+      "nReserveWanted": "u8",
+      "btsFlags": "u16",
+      "maxLocal": "u16",
+      "minLocal": "u16",
+      "maxLeaf": "u16",
+      "minLeaf": "u16",
+      "pageSize": "u32",
+      "usableSize": "u32"
+    },
+    "sqlite3_db": {
+      "nDb": "int",
+      "aDb": "Db*",
+      "xAutovacPages": "function_ptr",
+      "pAutovacPagesArg": "void*"
+    },
+    "mempage": {
+      "aData": "u8*",
+      "pDbPage": "DbPage*",
+      "pgno": "Pgno"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "page_size": [512, 65536],
+    "pgno_range": {"min": 1, "max": 4294967295},
+    "transaction_state": ["TRANS_NONE", "TRANS_READ", "TRANS_WRITE"],
+    "autovacuum_required": true,
+    "btree_state": ["BT_OPENED", "BT_SHARED"],
+    "mutex_required": true
+  },
+  "fc_mapping": {
+    "source": "btree.c:4174",
+    "rationale": "autoVacuumCommit - Critical auto-vacuum commit function for B-Tree space management",
+    "api_level": "internal"
+  },
+  "constraints": {
+    "max_input_size": 4096,
+    "min_input_size": 64,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "sqlite3_initialize() called",
+      "Valid Btree object created with autoVacuum enabled",
+      "BtShared mutex held",
+      "Database in valid state"
+    ],
+    "side_effects": [
+      "Database pages may be freed and moved",
+      "Page counts updated in database header",
+      "Freelist structure modified",
+      "Database file may be truncated"
+    ],
+    "error_conditions": [
+      "SQLITE_CORRUPT_BKPT: Database corruption detected",
+      "SQLITE_OK: Normal completion",
+      "SQLITE_DONE: Vacuum operation completed",
+      "Other error codes from pager operations"
+    ],
+    "coverage_scenarios": [
+      "autoVacuum enabled/disabled scenarios",
+      "incrVacuum mode variations", 
+      "Different page count conditions",
+      "Freelist with various states",
+      "Custom xAutovacPages callback handling",
+      "Pointer-map page boundary conditions",
+      "Database size edge cases"
+    ]
+  }
+}

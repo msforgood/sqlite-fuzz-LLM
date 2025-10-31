@@ -1,0 +1,72 @@
+{
+  "target": { 
+    "function": "sqlite3ValueFree",
+    "fc": "vdbe_017",
+    "category": "VDBE",
+    "file": "vdbemem.c",
+    "line": 2024
+  },
+  "struct_spec": {
+    "sqlite3_value": {
+      "flags": "u16",
+      "enc": "u8",
+      "eSubtype": "u8",
+      "n": "int",
+      "z": "char*",
+      "zMalloc": "char*",
+      "szMalloc": "int",
+      "uTemp": "u32",
+      "db": "sqlite3*",
+      "xDel": "void (*)(void*)"
+    },
+    "mem_equivalent": {
+      "db": "sqlite3*",
+      "z": "char*",
+      "zMalloc": "char*",
+      "szMalloc": "int",
+      "flags": "u16",
+      "type": "u8",
+      "enc": "u8"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "value_size": {"min": 0, "max": 1000000000},
+    "string_length": {"min": 0, "max": 1000000000},
+    "null_pointer_handling": true,
+    "memory_flags": ["MEM_Null", "MEM_Int", "MEM_Real", "MEM_Str", "MEM_Blob"],
+    "double_free_protection": true
+  },
+  "fc_mapping": {
+    "source": "vdbemem.c:2024",
+    "rationale": "sqlite3ValueFree - Critical VDBE value memory cleanup function",
+    "api_level": "public"
+  },
+  "constraints": {
+    "max_input_size": 2048,
+    "min_input_size": 8,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "sqlite3_initialize() called",
+      "Valid sqlite3_value pointer or NULL",
+      "Value properly initialized",
+      "Database context available"
+    ],
+    "side_effects": [
+      "Value memory released",
+      "String buffers freed",
+      "Database memory counter updated",
+      "Destructor called if needed"
+    ],
+    "error_conditions": [
+      "Null value pointer (handled gracefully)",
+      "Corrupted value structure",
+      "Invalid memory flags",
+      "Database context missing"
+    ]
+  }
+}

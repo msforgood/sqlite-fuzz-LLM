@@ -1,0 +1,65 @@
+{
+  "target": { 
+    "function": "sqlite3VdbeMemStringify",
+    "fc": "vdbe_mem_011",
+    "category": "VDBE",
+    "subcategory": "Memory Operations",
+    "file": "vdbemem.c",
+    "line": 458
+  },
+  "struct_spec": {
+    "stringify_params": {
+      "pMem": "Mem*",
+      "enc": "u8",
+      "bForce": "u8"
+    },
+    "numeric_types": {
+      "MEM_Int": "i64",
+      "MEM_Real": "double",
+      "MEM_IntReal": "i64"
+    },
+    "string_conversion": {
+      "buffer_size": "int",
+      "encoding": "u8",
+      "force_conversion": "bool"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "encoding_types": [0, 1, 2, 3],
+    "numeric_flags": ["MEM_Int", "MEM_Real", "MEM_IntReal"],
+    "excluded_flags": ["MEM_Zero", "MEM_Str", "MEM_Blob"],
+    "buffer_constraints": {"min_size": 32},
+    "force_modes": [0, 1]
+  },
+  "fc_mapping": {
+    "source": "vdbemem.c:458",
+    "rationale": "sqlite3VdbeMemStringify - Critical VDBE memory string conversion function",
+    "api_level": "public"
+  },
+  "constraints": {
+    "max_input_size": 256,
+    "min_input_size": 16,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "Memory object contains numeric value",
+      "No MEM_Zero flag set",
+      "Not already a string or blob",
+      "Proper alignment requirements"
+    ],
+    "side_effects": [
+      "String representation creation",
+      "Memory allocation for string buffer",
+      "Flag modification to MEM_Str"
+    ],
+    "error_conditions": [
+      "SQLITE_NOMEM: Out of memory",
+      "Invalid memory object state",
+      "Encoding conversion failures"
+    ]
+  }
+}

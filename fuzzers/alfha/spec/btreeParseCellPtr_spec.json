@@ -1,0 +1,60 @@
+{
+  "target": { 
+    "function": "btreeParseCellPtr",
+    "fc": "btree_cell_001",
+    "category": "B-Tree",
+    "file": "btree.c",
+    "line": 1259
+  },
+  "struct_spec": {
+    "btree_parse_cell_packet": {
+      "pageType": "u8",
+      "cellOffset": "u16", 
+      "cellSize": "u16",
+      "payloadSize": "u32",
+      "keySize": "i64",
+      "nLocal": "u16",
+      "flags": "u8",
+      "cellData": "u8[64]"
+    }
+  },
+  "validation_spec": {
+    "memory_align": 8,
+    "page_size": [512, 65536],
+    "cell_offset": {"min": 0, "max": 65535},
+    "cell_size": {"min": 0, "max": 65535},
+    "payload_size": {"min": 0, "max": 1000000000},
+    "key_size": {"min": 0, "max": 2147483647},
+    "page_types": [2, 5, 10, 13],
+    "cell_data_max": 64
+  },
+  "fc_mapping": {
+    "source": "btree.c:1259",
+    "rationale": "btreeParseCellPtr - Critical cell parsing function for B-Tree structure interpretation",
+    "api_level": "internal"
+  },
+  "constraints": {
+    "max_input_size": 8192,
+    "min_input_size": 32,
+    "endianness": "LE",
+    "sqlite_version": "3.51.0",
+    "requires_initialization": true
+  },
+  "notes": {
+    "preconditions": [
+      "Valid MemPage structure",
+      "Valid cell pointer within page bounds",
+      "CellInfo structure allocated"
+    ],
+    "side_effects": [
+      "CellInfo structure populated",
+      "Cell data interpretation",
+      "Memory access patterns"
+    ],
+    "error_conditions": [
+      "Invalid cell offset",
+      "Corrupted cell data",
+      "Page boundary violations"
+    ]
+  }
+}
