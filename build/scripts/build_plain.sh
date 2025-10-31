@@ -1,5 +1,5 @@
 #!/bin/bash -eu
-# Build + Run + Coverage for ours_wo_spec (libFuzzer)
+# Build + Run + Coverage for plain (libFuzzer)
 # DURATION_SEC, TIMEOUT_SEC, CC, CXX, LLVM_PROFDATA, LLVM_COV, SQLITE_SRC, SRC_ROOT, FORCE_BUILD
 
 set -o pipefail
@@ -19,13 +19,13 @@ command -v "$LLVM_COV" >/dev/null 2>&1 || LLVM_COV=llvm-cov
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEPS_DIR="$ROOT_DIR/build/dependencies"
-FUZZER_DIR="$ROOT_DIR/fuzzers/ours_wo_spec"
+FUZZER_DIR="$ROOT_DIR/fuzzers/plain"
 OBJ_DIR="$ROOT_DIR/build/obj"
 
-OUT_BIN="$ROOT_DIR/ours_wo_spec"
-COV_DIR="$ROOT_DIR/coverage_results/ours_wo_spec"
-ART_DIR="$ROOT_DIR/artifacts/ours_wo_spec"
-CORPUS_DIR="$ROOT_DIR/corpus/ours_wo_spec"
+OUT_BIN="$ROOT_DIR/plain"
+COV_DIR="$ROOT_DIR/analysis/results/coverage/plain"
+ART_DIR="$ROOT_DIR/artifacts/plain"
+CORPUS_DIR="$ROOT_DIR/corpus/plain"
 
 SQLITE_SRC="${SQLITE_SRC:-$DEPS_DIR/sqlite3.c}"
 SRC_ROOT="${SRC_ROOT:-$ROOT_DIR}"
@@ -52,7 +52,7 @@ LDLIBS="-lpthread -ldl -lm"
 
 # 빌드
 if [[ ! -x "$OUT_BIN" || "${FORCE_BUILD:-0}" = "1" ]]; then
-  echo "Building libFuzzer-style ours_wo_spec -> $OUT_BIN"
+  echo "Building libFuzzer-style plain -> $OUT_BIN"
 
   echo "Compiling sqlite3.c..."
   $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o "$OBJ_DIR/sqlite3.o"
@@ -116,7 +116,7 @@ if [ -f "$SQLITE_SRC" ]; then
   echo "Saved HTML: $COV_DIR/html_sqlite/index.html"
 else
   echo "SQLITE_SRC not found ($SQLITE_SRC). Generating approximate sqlite report by ignoring driver files..."
-  IGNORE='(test_main|fuzzers/ours_wo_spec/fuzz\.c|fuzzers/.*/test_main|fuzzers/.*/ossfuzz|test_main)'
+  IGNORE='(test_main|fuzzers/plain/fuzz\.c|fuzzers/.*/test_main|fuzzers/.*/ossfuzz|test_main)'
   "$LLVM_COV" report "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex="$IGNORE" > "$COV_DIR/sqlite_summary.txt" || true
   mkdir -p "$COV_DIR/html_sqlite"
   "$LLVM_COV" show "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex="$IGNORE" -show-line-counts -show-regions -show-instantiations > "$COV_DIR/html_sqlite/index.html" || true

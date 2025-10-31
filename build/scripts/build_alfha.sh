@@ -1,10 +1,10 @@
 #!/bin/bash -eu
-# Build + Run + Coverage for ours_w_spec (libFuzzer)
+# Build + Run + Coverage for alfha (libFuzzer)
 # DURATION_SEC, TIMEOUT_SEC, CC, CXX, LLVM_PROFDATA, LLVM_COV, SQLITE_SRC, SRC_ROOT, FORCE_BUILD
 
 set -o pipefail
 
-DURATION=${DURATION_SEC:-10}
+DURATION=${DURATION_SEC:-36000}
 TIMEOUT=${TIMEOUT_SEC:-10}
 CC=${CC:-clang-18}
 CXX=${CXX:-clang++-18}
@@ -19,13 +19,13 @@ command -v "$LLVM_COV" >/dev/null 2>&1 || LLVM_COV=llvm-cov
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEPS_DIR="$ROOT_DIR/build/dependencies"
-FUZZER_DIR="$ROOT_DIR/fuzzers/ours_w_spec"
+FUZZER_DIR="$ROOT_DIR/fuzzers/alfha"
 OBJ_DIR="$ROOT_DIR/build/obj"
 
-OUT_BIN="$ROOT_DIR/ours_w_spec_standalone"
-COV_DIR="$ROOT_DIR/coverage_results/ours_w_spec"
-ART_DIR="$ROOT_DIR/artifacts/ours_w_spec"
-CORPUS_DIR="$ROOT_DIR/corpus/ours_w_spec"
+OUT_BIN="$ROOT_DIR/alfha_standalone"
+COV_DIR="$ROOT_DIR/analysis/results/coverage/alfha"
+ART_DIR="$ROOT_DIR/artifacts/alfha"
+CORPUS_DIR="$ROOT_DIR/corpus/alfha"
 
 SQLITE_SRC="${SQLITE_SRC:-$DEPS_DIR/sqlite3.c}"
 SRC_ROOT="${SRC_ROOT:-$ROOT_DIR}"
@@ -52,7 +52,7 @@ LDLIBS="-lpthread -ldl -lm"
 
 # 빌드
 if [[ ! -x "$OUT_BIN" || "${FORCE_BUILD:-0}" = "1" ]]; then
-  echo "Building libFuzzer-style ours_w_spec -> $OUT_BIN"
+  echo "Building libFuzzer-style alfha -> $OUT_BIN"
 
   echo "Compiling sqlite3.c..."
   $CC $COV_FLAGS $COMMON_DEFS -I"$DEPS_DIR" -c "$DEPS_DIR/sqlite3.c" -o "$OBJ_DIR/sqlite3.o"
@@ -239,6 +239,7 @@ set +e
   -print_final_stats=1 \
   -artifact_prefix="$ART_DIR/" \
   -max_len=4096 \
+  -detect_leaks=0 \
   "$CORPUS_DIR"
 rc=$?
 set -e
@@ -276,7 +277,7 @@ if [ -f "$SQLITE_SRC" ]; then
   echo "Saved HTML: $COV_DIR/html_sqlite/index.html"
 else
   echo "SQLITE_SRC not found ($SQLITE_SRC). Generating approximate sqlite report by ignoring driver files..."
-  IGNORE='(test_main|fuzzers/ours_w_spec/fuzz\.c|fuzzers/.*/test_main|fuzzers/.*/ossfuzz|test_main)'
+  IGNORE='(test_main|fuzzers/alfha/fuzz\.c|fuzzers/.*/test_main|fuzzers/.*/ossfuzz|test_main)'
   "$LLVM_COV" report "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex="$IGNORE" > "$COV_DIR/sqlite_summary.txt" || true
   mkdir -p "$COV_DIR/html_sqlite"
   "$LLVM_COV" show "$OUT_BIN" -instr-profile="$COV_DIR/fuzzer.profdata" -ignore-filename-regex="$IGNORE" -show-line-counts -show-regions -show-instantiations > "$COV_DIR/html_sqlite/index.html" || true

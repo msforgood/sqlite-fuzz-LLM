@@ -23,7 +23,7 @@ FUZZER_DIR="$ROOT_DIR/fuzzers/baseline"
 OBJ_DIR="$ROOT_DIR/build/obj"
 
 OUT_BIN="$ROOT_DIR/baseline"
-COV_DIR="$ROOT_DIR/coverage_results/baseline"
+COV_DIR="$ROOT_DIR/analysis/results/coverage/baseline"
 ART_DIR="$ROOT_DIR/artifacts/baseline"
 CORPUS_DIR="$ROOT_DIR/corpus/baseline"
 
