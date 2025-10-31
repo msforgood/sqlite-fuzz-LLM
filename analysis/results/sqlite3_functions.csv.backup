@@ -2,32 +2,32 @@ function_name,file,line_number,return_type,category,subcategory,fuzzing_priority
 allocateBtreePage,btree.c,3991,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int allocateBtreePage(BtShared *, MemPage **, Pgno *, Pgno, u8);", True
 allocateBtreePage,btree.c,6475,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int allocateBtreePage(, True
 autoVacuumCommit,btree.c,4174,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int autoVacuumCommit(Btree *p){, True
-btreeBeginTrans,btree.c,3783,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeBeginTrans(p,wrflag,pSchemaVersion);", False
-btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,return btreeCellSizeCheck(pPage);, False
+btreeBeginTrans,btree.c,3783,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeBeginTrans(p,wrflag,pSchemaVersion);", True
+btreeCellSizeCheck,btree.c,2258,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,return btreeCellSizeCheck(pPage);, True
 btreeClearHasContent,btree.c,682,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeClearHasContent(BtShared *pBt){, True
 btreeComputeFreeSpace,btree.c,2091,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeComputeFreeSpace(MemPage *pPage){, True
-btreeCreateTable,btree.c,10015,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeCreateTable(Btree *p, Pgno *piTable, int createTabFlags){", False
-btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, False
-btreeCursor,btree.c,4751,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeCursor(p, iTable, wrFlag, pKeyInfo, pCur);", False
-btreeCursorWithLock,btree.c,4728,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeCursorWithLock(, False
+btreeCreateTable,btree.c,10015,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeCreateTable(Btree *p, Pgno *piTable, int createTabFlags){", True
+btreeCursor,btree.c,4661,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeCursor(, True
+btreeCursor,btree.c,4751,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeCursor(p, iTable, wrFlag, pKeyInfo, pCur);", True
+btreeCursorWithLock,btree.c,4728,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeCursorWithLock(, True
 btreeCursorWithLock,btree.c,4749,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeCursorWithLock(p, iTable, wrFlag, pKeyInfo, pCur);", False
-btreeDropTable,btree.c,10289,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int btreeDropTable(Btree *p, Pgno iTable, int *piMoved){", False
-btreeEndTransaction,btree.c,4312,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeEndTransaction(Btree *p){, False
+btreeDropTable,btree.c,10289,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int btreeDropTable(Btree *p, Pgno iTable, int *piMoved){", True
+btreeEndTransaction,btree.c,4312,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static void btreeEndTransaction(Btree *p){, True
 btreeGetHasContent,btree.c,673,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeGetHasContent(BtShared *pBt, Pgno pgno){", True
-btreeGetPage,btree.c,2328,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeGetPage(, False
-btreeGetUnusedPage,btree.c,2449,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeGetUnusedPage(, False
-btreeHeapInsert,btree.c,10770,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void btreeHeapInsert(u32 *aHeap, u32 x){", False
-btreeHeapPull,btree.c,10782,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int btreeHeapPull(u32 *aHeap, u32 *pOut){", False
+btreeGetPage,btree.c,2328,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeGetPage(, True
+btreeGetUnusedPage,btree.c,2449,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int btreeGetUnusedPage(, True
+btreeHeapInsert,btree.c,10770,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void btreeHeapInsert(u32 *aHeap, u32 x){", True
+btreeHeapPull,btree.c,10782,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int btreeHeapPull(u32 *aHeap, u32 *pOut){", True
 btreeInitPage,btree.c,2214,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeInitPage(MemPage *pPage){, True
-btreeInvokeBusyHandler,btree.c,2500,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeInvokeBusyHandler(void *pArg){, False
+btreeInvokeBusyHandler,btree.c,2500,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeInvokeBusyHandler(void *pArg){,True
 btreeLast,btree.c,5743,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,"return btreeLast(pCur, pRes);", False
-btreeMoveto,btree.c,860,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeMoveto(, False
+btreeMoveto,btree.c,860,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int btreeMoveto(, True
 btreeNext,btree.c,6356,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,return btreeNext(pCur);, False
-btreeOverwriteCell,btree.c,9320,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeOverwriteCell(BtCursor *pCur, const BtreePayload *pX){", False
-btreeOverwriteCell,btree.c,9466,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteCell(pCur, pX);", False
-btreeOverwriteCell,btree.c,9518,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteCell(pCur, &x2);", False
-btreeOverwriteContent,btree.c,9225,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeOverwriteContent(, False
-btreeOverwriteContent,btree.c,9331,return,B-Tree,Index Management,Critical,High,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteContent(pPage, pCur->info.pPayload, pX,", False
+btreeOverwriteCell,btree.c,9320,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeOverwriteCell(BtCursor *pCur, const BtreePayload *pX){", True
+btreeOverwriteCell,btree.c,9466,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteCell(pCur, pX);", True
+btreeOverwriteCell,btree.c,9518,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteCell(pCur, &x2);", True
+btreeOverwriteContent,btree.c,9225,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeOverwriteContent(, True
+btreeOverwriteContent,btree.c,9331,return,B-Tree,Index Management,Critical,High,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteContent(pPage, pCur->info.pPayload, pX,", True
 btreeOverwriteOverflowCell,btree.c,9335,return,B-Tree,Index Management,Critical,High,False,False,Index Management function in B-Tree subsystem,"return btreeOverwriteOverflowCell(pCur, pX);", False
 btreePageFromDbPage,btree.c,2355,return,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"return btreePageFromDbPage(pDbPage, pgno, pBt);", False
 btreePagecount,btree.c,2364,Pgno,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static Pgno btreePagecount(BtShared *pBt){, False
@@ -39,18 +39,18 @@ btreeParseCellPtrNoPayload,btree.c,1242,void,B-Tree,Index Management,Critical,Hi
 btreePayloadToLocal,btree.c,1213,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreePayloadToLocal(MemPage *pPage, i64 nPayload){", False
 btreePrevious,btree.c,6447,return,B-Tree,Index Management,Critical,Low,False,False,Index Management function in B-Tree subsystem,return btreePrevious(pCur);, False
 btreeReleaseAllCursorPages,btree.c,690,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void btreeReleaseAllCursorPages(BtCursor *pCur){, False
-btreeRestoreCursorPosition,btree.c,896,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeRestoreCursorPosition(BtCursor *pCur){, False
+btreeRestoreCursorPosition,btree.c,896,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static int btreeRestoreCursorPosition(BtCursor *pCur){,True
 btreeSetHasContent,btree.c,651,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static int btreeSetHasContent(BtShared *pBt, Pgno pgno){", False
 btreeSetNPage,btree.c,4475,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void btreeSetNPage(BtShared *pBt, MemPage *pPage1){", False
 checkTreePage,btree.c,10816,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int checkTreePage(, False
 clearAllSharedCacheTableLocks,btree.c,467,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void clearAllSharedCacheTableLocks(Btree *p){, False
-clearDatabasePage,btree.c,10172,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int clearDatabasePage(, False
+clearDatabasePage,btree.c,10172,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int clearDatabasePage(, True
 corruptPageError,btree.c,136,int,B-Tree,Index Management,Critical,Medium,False,False,Index Management function in B-Tree subsystem,"int corruptPageError(int lineno, MemPage *p){", False
 cursorOnLastPage,btree.c,5964,int,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,static int cursorOnLastPage(BtCursor *pCur){, False
-defragmentPage,btree.c,1613,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int defragmentPage(MemPage *pPage, int nMaxFrag){", False
+defragmentPage,btree.c,1613,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int defragmentPage(MemPage *pPage, int nMaxFrag){", True
 downgradeAllSharedCacheTableLocks,btree.c,513,void,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,static void downgradeAllSharedCacheTableLocks(Btree *p){, False
 editPage,btree.c,7834,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int editPage(, False
-freePage,btree.c,6931,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void freePage(MemPage *pPage, int *pRC){", False
+freePage,btree.c,6931,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static void freePage(MemPage *pPage, int *pRC){", True
 freePage2,btree.c,6797,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int freePage2(BtShared *pBt, MemPage *pMemPage, Pgno iPage){", False
 freeSpace,btree.c,1918,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,"static int freeSpace(MemPage *pPage, int iStart, int iSize){", False
 freeTempSpace,btree.c,2906,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static void freeTempSpace(BtShared *pBt){, False
@@ -76,7 +76,7 @@ releasePageOne,btree.c,532,void,B-Tree,Index Management,Critical,Low,False,True,
 releasePageOne,btree.c,2429,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static void releasePageOne(MemPage *pPage){, False
 relocatePage,btree.c,3916,int,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static int relocatePage(, False
 setPageReferenced,btree.c,10618,void,B-Tree,Index Management,Critical,Medium,False,True,Index Management function in B-Tree subsystem,"static void setPageReferenced(IntegrityCk *pCheck, Pgno iPg){", False
-setSharedCacheTableLock,btree.c,401,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,"static int setSharedCacheTableLock(Btree *p, Pgno iTable, u8 eLock){", False
+setSharedCacheTableLock,btree.c,401,int,B-Tree,Index Management,Critical,High,False,True,Index Management function in B-Tree subsystem,"static int setSharedCacheTableLock(Btree *p, Pgno iTable, u8 eLock){",True
 sharedLockTrace,btree.c,168,void,B-Tree,Index Management,Critical,Low,False,True,Index Management function in B-Tree subsystem,static void sharedLockTrace(, False
 sqlite3BtreeBeginStmt,btree.c,4559,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeBeginStmt(Btree *p, int iStatement){", False
 sqlite3BtreeBeginTrans,btree.c,3777,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeBeginTrans(Btree *p, int wrflag, int *pSchemaVersion){", False
@@ -87,7 +87,7 @@ sqlite3BtreeClearTable,btree.c,10239,int,B-Tree,Index Management,Critical,High,T
 sqlite3BtreeClearTable,btree.c,10266,return,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"return sqlite3BtreeClearTable(pCur->pBtree, pCur->pgnoRoot, 0);", False
 sqlite3BtreeClearTableOfCursor,btree.c,10265,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeClearTableOfCursor(BtCursor *pCur){, False
 sqlite3BtreeClose,btree.c,2917,int,B-Tree,Database Connection,Critical,Medium,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeClose(Btree *p){, False
-sqlite3BtreeCloseCursor,btree.c,4802,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeCloseCursor(BtCursor *pCur){, False
+sqlite3BtreeCloseCursor,btree.c,4802,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeCloseCursor(BtCursor *pCur){, True
 sqlite3BtreeClosesWithCursor,btree.c,4773,int,B-Tree,Database Connection,Critical,High,True,False,Database Connection function in B-Tree subsystem,int sqlite3BtreeClosesWithCursor(, False
 sqlite3BtreeCommit,btree.c,4406,int,B-Tree,Index Management,Critical,Medium,True,False,Index Management function in B-Tree subsystem,int sqlite3BtreeCommit(Btree *p){, False
 sqlite3BtreeCommitPhaseOne,btree.c,4285,int,B-Tree,Index Management,Critical,High,True,False,Index Management function in B-Tree subsystem,"int sqlite3BtreeCommitPhaseOne(Btree *p, const char *zSuperJrnl){", False
@@ -587,38 +587,38 @@ winceUnlockFile,os_win.c,2764,return,Other,Unknown,Critical,Low,False,False,Unkn
 wrMemFree,test_init.c,62,void,Other,Unknown,Critical,Low,False,True,Unknown function in Other subsystem,static void wrMemFree(void *p)            {wrapped.mem.xFree(p);}, False
 wrMutexFree,test_init.c,88,void,Other,Unknown,Critical,Low,False,True,Unknown function in Other subsystem,static void wrMutexFree(sqlite3_mutex *p){, False
 wrPCachePagecount,test_init.c,132,int,Other,Unknown,Critical,Medium,False,True,Unknown function in Other subsystem,static int wrPCachePagecount(sqlite3_pcache *p){, False
-codeTableLocks,build.c,102,void,Parser,SQL Building,Critical,Low,False,True,SQL Building function in Parser subsystem,static void codeTableLocks(Parse *pParse){, False
-destroyRootPage,build.c,3280,void,Parser,SQL Building,Critical,Low,False,True,SQL Building function in Parser subsystem,"static void destroyRootPage(Parse *pParse, int iTable, int iDb){", False
-sqlite3CodeVerifyNamedSchema,build.c,5373,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifyNamedSchema(Parse *pParse, const char *zDb){", False
-sqlite3CodeVerifySchema,build.c,5364,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifySchema(Parse *pParse, int iDb){", False
-sqlite3CodeVerifySchemaAtToplevel,build.c,5352,void,Parser,SQL Building,Critical,High,True,True,SQL Building function in Parser subsystem,"static void sqlite3CodeVerifySchemaAtToplevel(Parse *pToplevel, int iDb){", False
-sqlite3CommitInternalChanges,build.c,673,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,void sqlite3CommitInternalChanges(sqlite3 *db){, False
+codeTableLocks,build.c,102,void,Parser,SQL Building,Critical,Low,False,True,SQL Building function in Parser subsystem,static void codeTableLocks(Parse *pParse){, True
+destroyRootPage,build.c,3280,void,Parser,SQL Building,Critical,Low,False,True,SQL Building function in Parser subsystem,"static void destroyRootPage(Parse *pParse, int iTable, int iDb){",True
+sqlite3CodeVerifyNamedSchema,build.c,5373,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifyNamedSchema(Parse *pParse, const char *zDb){", True
+sqlite3CodeVerifySchema,build.c,5364,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,"void sqlite3CodeVerifySchema(Parse *pParse, int iDb){",True
+sqlite3CodeVerifySchemaAtToplevel,build.c,5352,void,Parser,SQL Building,Critical,High,True,True,SQL Building function in Parser subsystem,"static void sqlite3CodeVerifySchemaAtToplevel(Parse *pToplevel, int iDb){", True
+sqlite3CommitInternalChanges,build.c,673,void,Parser,SQL Building,Critical,High,True,False,SQL Building function in Parser subsystem,void sqlite3CommitInternalChanges(sqlite3 *db){, True
 sqlite3ExprAttachSubtrees,expr.c,996,void,Parser,Expression Evaluation,Critical,High,True,False,Expression Evaluation function in Parser subsystem,void sqlite3ExprAttachSubtrees(, False
-sqlite3FreeIndex,build.c,545,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3FreeIndex(sqlite3 *db, Index *p){", False
+sqlite3FreeIndex,build.c,545,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3FreeIndex(sqlite3 *db, Index *p){", True
 sqlite3NestedParse,build.c,293,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3NestedParse(Parse *pParse, const char *zFormat, ...){", False
 sqlite3RootPageMoved,build.c,3250,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,"void sqlite3RootPageMoved(sqlite3 *db, int iDb, Pgno iFrom, Pgno iTo){", False
 sqlite3TableLock,build.c,86,void,Parser,SQL Building,Critical,Medium,True,False,SQL Building function in Parser subsystem,void sqlite3TableLock(, False
 agginfoFree,select.c,7225,void,Query,SELECT Processing,Critical,Low,False,True,SELECT Processing function in Query subsystem,"static void agginfoFree(sqlite3 *db, void *pArg){", False
-freeIdxStr,where.c,1628,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,static void freeIdxStr(sqlite3_index_info *pIdxInfo){, False
-freeIndexInfo,where.c,1640,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void freeIndexInfo(sqlite3 *db, sqlite3_index_info *pIdxInfo){", False
+freeIdxStr,where.c,1628,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,static void freeIdxStr(sqlite3_index_info *pIdxInfo){, True
+freeIndexInfo,where.c,1640,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void freeIndexInfo(sqlite3 *db, sqlite3_index_info *pIdxInfo){", True
 sqlite3VdbeCreate,select.c,2497,return,Query,SELECT Processing,Critical,Medium,True,False,SELECT Processing function in Query subsystem,return sqlite3VdbeCreate(pParse);, False
-whereInfoFree,where.c,2607,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void whereInfoFree(sqlite3 *db, WhereInfo *pWInfo){", False
+whereInfoFree,where.c,2607,void,Query,WHERE Clause,Critical,Low,False,True,WHERE Clause function in Query subsystem,"static void whereInfoFree(sqlite3 *db, WhereInfo *pWInfo){", True
 whereLoopAddBtree,where.c,3908,int,Query,WHERE Clause,Critical,Medium,False,True,WHERE Clause function in Query subsystem,static int whereLoopAddBtree(, False
-whereLoopAddBtreeIndex,where.c,3125,int,Query,WHERE Clause,Critical,High,False,True,WHERE Clause function in Query subsystem,static int whereLoopAddBtreeIndex(, False
-assert_pager_state,pager.c,845,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int assert_pager_state(Pager *p){, False
-checkPage,pager.c,1259,void,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static void checkPage(PgHdr *pPg){, False
+whereLoopAddBtreeIndex,where.c,3125,int,Query,WHERE Clause,Critical,High,False,True,WHERE Clause function in Query subsystem,static int whereLoopAddBtreeIndex(, True
+assert_pager_state,pager.c,845,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int assert_pager_state(Pager *p){, True
+checkPage,pager.c,1259,void,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static void checkPage(PgHdr *pPg){, True
 getPageError,pager.c,1034,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageError(Pager*,Pgno,DbPage**,int);", False
 getPageError,pager.c,5706,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageError(, False
 getPageMMap,pager.c,1036,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageMMap(Pager*,Pgno,DbPage**,int);", False
 getPageMMap,pager.c,5637,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageMMap(, False
-getPageNormal,pager.c,1033,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageNormal(Pager*,Pgno,DbPage**,int);", False
-getPageNormal,pager.c,5531,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageNormal(, False
-getPageNormal,pager.c,5701,return,Storage,Page Management,Critical,Low,False,False,Page Management function in Storage subsystem,"return getPageNormal(pPager, pgno, ppPage, flags);", False
-pageInJournal,pager.c,1085,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int pageInJournal(Pager *pPager, PgHdr *pPg){", False
-pagerAcquireMapPage,pager.c,4068,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerAcquireMapPage(, False
-pagerBeginReadTransaction,pager.c,3244,int,Storage,Page Management,Critical,High,False,True,Page Management function in Storage subsystem,static int pagerBeginReadTransaction(Pager *pPager){, False
-pagerExclusiveLock,pager.c,7555,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerExclusiveLock(Pager *pPager){, False
-pagerFixMaplimit,pager.c,3531,void,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static void pagerFixMaplimit(Pager *pPager){, False
+getPageNormal,pager.c,1033,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int getPageNormal(Pager*,Pgno,DbPage**,int);", True
+getPageNormal,pager.c,5531,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,static int getPageNormal(, True
+getPageNormal,pager.c,5701,return,Storage,Page Management,Critical,Low,False,False,Page Management function in Storage subsystem,"return getPageNormal(pPager, pgno, ppPage, flags);", True
+pageInJournal,pager.c,1085,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int pageInJournal(Pager *pPager, PgHdr *pPg){", True
+pagerAcquireMapPage,pager.c,4068,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerAcquireMapPage(, True
+pagerBeginReadTransaction,pager.c,3244,int,Storage,Page Management,Critical,High,False,True,Page Management function in Storage subsystem,static int pagerBeginReadTransaction(Pager *pPager){, True
+pagerExclusiveLock,pager.c,7555,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static int pagerExclusiveLock(Pager *pPager){, True
+pagerFixMaplimit,pager.c,3531,void,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static void pagerFixMaplimit(Pager *pPager){, True
 pagerFlushOnCommit,pager.c,1979,int,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,"static int pagerFlushOnCommit(Pager *pPager, int bCommit){", False
 pagerFreeMapHdrs,pager.c,4126,void,Storage,Page Management,Critical,Medium,False,True,Page Management function in Storage subsystem,static void pagerFreeMapHdrs(Pager *pPager){, False
 pagerLockDb,pager.c,1159,int,Storage,Page Management,Critical,Low,False,True,Page Management function in Storage subsystem,"static int pagerLockDb(Pager *pPager, int eLock){", False
@@ -761,16 +761,16 @@ sqlite3_backup_finish,backup.c,571,int,Utility,Database Backup,Critical,High,Tru
 sqlite3_backup_pagecount,backup.c,639,int,Utility,Database Backup,Critical,High,True,False,Database Backup function in Utility subsystem,int sqlite3_backup_pagecount(sqlite3_backup *p){, False
 sqlite3_backup_remaining,backup.c,625,int,Utility,Database Backup,Critical,High,True,False,Database Backup function in Utility subsystem,int sqlite3_backup_remaining(sqlite3_backup *p){, False
 sqlite3_backup_step,backup.c,314,int,Utility,Statement Execution,Critical,Medium,True,False,Statement Execution function in Utility subsystem,"int sqlite3_backup_step(sqlite3_backup *p, int nPage){", False
-checkActiveVdbeCnt,vdbeaux.c,3183,void,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static void checkActiveVdbeCnt(sqlite3 *db){, False
-columnMallocFailure,vdbeapi.c,1343,void,VDBE,API Interface,Critical,Medium,False,True,API Interface function in VDBE subsystem,static void columnMallocFailure(sqlite3_stmt *pStmt), False
-freeEphemeralFunction,vdbeaux.c,19,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeEphemeralFunction(sqlite3 *db, FuncDef *pDef);", False
-freeEphemeralFunction,vdbeaux.c,1358,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeEphemeralFunction(sqlite3 *db, FuncDef *pDef){", False
-freeP4,vdbeaux.c,1377,void,VDBE,Auxiliary Functions,Critical,Low,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeP4(sqlite3 *db, int p4type, void *p4){", False
+checkActiveVdbeCnt,vdbeaux.c,3183,void,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static void checkActiveVdbeCnt(sqlite3 *db){, True
+columnMallocFailure,vdbeapi.c,1343,void,VDBE,API Interface,Critical,Medium,False,True,API Interface function in VDBE subsystem,static void columnMallocFailure(sqlite3_stmt *pStmt), True
+freeEphemeralFunction,vdbeaux.c,19,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeEphemeralFunction(sqlite3 *db, FuncDef *pDef);", True
+freeEphemeralFunction,vdbeaux.c,1358,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeEphemeralFunction(sqlite3 *db, FuncDef *pDef){", True
+freeP4,vdbeaux.c,1377,void,VDBE,Auxiliary Functions,Critical,Low,False,True,Auxiliary Functions function in VDBE subsystem,"static void freeP4(sqlite3 *db, int p4type, void *p4){", True
 sqlite3ErrorToParser,vdbemem.c,1211,return,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,"return sqlite3ErrorToParser(pMem->db, SQLITE_TOOBIG);", False
-sqlite3ExpirePreparedStatements,vdbeaux.c,5333,void,VDBE,Statement Preparation,Critical,High,True,False,Statement Preparation function in VDBE subsystem,"void sqlite3ExpirePreparedStatements(sqlite3 *db, int iCode){", False
-sqlite3Stat4ProbeFree,vdbemem.c,1993,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3Stat4ProbeFree(UnpackedRecord *pRec){, False
+sqlite3ExpirePreparedStatements,vdbeaux.c,5333,void,VDBE,Statement Preparation,Critical,High,True,False,Statement Preparation function in VDBE subsystem,"void sqlite3ExpirePreparedStatements(sqlite3 *db, int iCode){", True
+sqlite3Stat4ProbeFree,vdbemem.c,1993,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3Stat4ProbeFree(UnpackedRecord *pRec){, True
 sqlite3Step,vdbeapi.c,753,int,VDBE,Statement Execution,Critical,Low,True,True,Statement Execution function in VDBE subsystem,static int sqlite3Step(Vdbe *p){, False
-sqlite3ValueFree,vdbemem.c,2024,void,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,void sqlite3ValueFree(sqlite3_value *v){, False
+sqlite3ValueFree,vdbemem.c,2024,void,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,void sqlite3ValueFree(sqlite3_value *v){, True
 sqlite3VdbeAddDblquoteStr,vdbeaux.c,84,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeAddDblquoteStr(sqlite3 *db, Vdbe *p, const char *z){", False
 sqlite3VdbeAddFunctionCall,vdbeaux.c,438,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeAddFunctionCall(, False
 sqlite3VdbeAddOp0,vdbeaux.c,263,int,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"int sqlite3VdbeAddOp0(Vdbe *p, int op){", False
@@ -811,7 +811,7 @@ sqlite3VdbeCountChanges,vdbeaux.c,5311,void,VDBE,Auxiliary Functions,Critical,Hi
 sqlite3VdbeCurrentAddr,vdbeaux.c,1065,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeCurrentAddr(Vdbe *p){, False
 sqlite3VdbeCursorRestore,vdbeaux.c,3838,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeCursorRestore(VdbeCursor *p){, False
 sqlite3VdbeDelete,vdbeaux.c,3774,void,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,void sqlite3VdbeDelete(Vdbe *p){, False
-sqlite3VdbeDeleteAuxData,vdbeaux.c,3702,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeDeleteAuxData(sqlite3 *db, AuxData **pp, int iOp, int mask){", False
+sqlite3VdbeDeleteAuxData,vdbeaux.c,3702,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeDeleteAuxData(sqlite3 *db, AuxData **pp, int iOp, int mask){", True
 sqlite3VdbeDeletePriorOpcode,vdbeaux.c,1488,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"int sqlite3VdbeDeletePriorOpcode(Vdbe *p, u8 op){", False
 sqlite3VdbeEndCoroutine,vdbeaux.c,572,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeEndCoroutine(Vdbe *v, int regYield){", False
 sqlite3VdbeEnter,vdbeaux.c,2062,void,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,void sqlite3VdbeEnter(Vdbe *p){, False
@@ -861,7 +861,7 @@ sqlite3VdbeMemGrow,vdbemem.c,309,return,VDBE,Memory Operations,Critical,Medium,T
 sqlite3VdbeMemInit,vdbemem.c,861,void,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemInit(Mem *pMem, sqlite3 *db, u16 flags){", False
 sqlite3VdbeMemIntegerify,vdbemem.c,722,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemIntegerify(Mem *pMem){, False
 sqlite3VdbeMemIsRowSet,vdbemem.c,994,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemIsRowSet(const Mem *pMem){, False
-sqlite3VdbeMemMakeWriteable,vdbemem.c,377,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemMakeWriteable(Mem *pMem){, False
+sqlite3VdbeMemMakeWriteable,vdbemem.c,377,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemMakeWriteable(Mem *pMem){, True
 sqlite3VdbeMemMove,vdbemem.c,1128,void,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemMove(Mem *pTo, Mem *pFrom){", False
 sqlite3VdbeMemNulTerminate,vdbemem.c,432,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemNulTerminate(Mem *pMem){, False
 sqlite3VdbeMemNumerify,vdbemem.c,781,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemNumerify(Mem *pMem){, False
@@ -875,13 +875,13 @@ sqlite3VdbeMemSetNull,vdbemem.c,881,void,VDBE,Memory Operations,Critical,High,Tr
 sqlite3VdbeMemSetPointer,vdbemem.c,960,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3VdbeMemSetPointer(, False
 sqlite3VdbeMemSetRowSet,vdbemem.c,1007,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemSetRowSet(Mem *pMem){, False
 sqlite3VdbeMemSetStr,vdbemem.c,1161,int,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemSetStr(, False
-sqlite3VdbeMemSetZeroBlob,vdbemem.c,897,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", False
-sqlite3VdbeMemSetZeroBlob,vdbemem.c,907,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", False
+sqlite3VdbeMemSetZeroBlob,vdbemem.c,897,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", True
+sqlite3VdbeMemSetZeroBlob,vdbemem.c,907,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemSetZeroBlob(Mem *pMem, int n){", True
 sqlite3VdbeMemSetZeroBlob,vdbeapi.c,665,return,VDBE,API Interface,Critical,High,True,False,API Interface function in VDBE subsystem,"return sqlite3VdbeMemSetZeroBlob(pCtx->pOut, (int)n);", False
-sqlite3VdbeMemShallowCopy,vdbemem.c,1089,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemShallowCopy(Mem *pTo, const Mem *pFrom, int srcType){", False
-sqlite3VdbeMemStringify,vdbemem.c,458,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemStringify(Mem *pMem, u8 enc, u8 bForce){", False
+sqlite3VdbeMemShallowCopy,vdbemem.c,1089,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"void sqlite3VdbeMemShallowCopy(Mem *pTo, const Mem *pFrom, int srcType){", True
+sqlite3VdbeMemStringify,vdbemem.c,458,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,"int sqlite3VdbeMemStringify(Mem *pMem, u8 enc, u8 bForce){", True
 sqlite3VdbeMemTooBig,vdbemem.c,1025,int,VDBE,Memory Operations,Critical,Medium,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemTooBig(Mem *p){, False
-sqlite3VdbeMemValidStrRep,vdbemem.c,154,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemValidStrRep(Mem *p){, False
+sqlite3VdbeMemValidStrRep,vdbemem.c,154,int,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,int sqlite3VdbeMemValidStrRep(Mem *p){, True
 sqlite3VdbeMemZeroTerminateIfAble,vdbemem.c,324,void,VDBE,Memory Operations,Critical,High,True,False,Memory Operations function in VDBE subsystem,void sqlite3VdbeMemZeroTerminateIfAble(Mem *pMem){, False
 sqlite3VdbeMultiLoad,vdbeaux.c,391,void,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeMultiLoad(Vdbe *p, int iDest, const char *zTypes, ...){", False
 sqlite3VdbeNextOpcode,vdbeaux.c,2258,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeNextOpcode(, False
@@ -920,7 +920,7 @@ sqlite3VdbeSerialTypeLen,vdbeaux.c,3984,u32,VDBE,Auxiliary Functions,Critical,Hi
 sqlite3VdbeSetChanges,vdbeaux.c,5301,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetChanges(sqlite3 *db, i64 nChange){", False
 sqlite3VdbeSetColName,vdbeaux.c,2887,int,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,int sqlite3VdbeSetColName(, False
 sqlite3VdbeSetLineNumber,vdbeaux.c,1677,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetLineNumber(Vdbe *v, int iLine){", False
-sqlite3VdbeSetNumCols,vdbeaux.c,2862,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetNumCols(Vdbe *p, int nResColumn){", False
+sqlite3VdbeSetNumCols,vdbeaux.c,2862,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetNumCols(Vdbe *p, int nResColumn){", True
 sqlite3VdbeSetP4KeyInfo,vdbeaux.c,1629,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetP4KeyInfo(Parse *pParse, Index *pIdx){", False
 sqlite3VdbeSetSql,vdbeaux.c,70,void,VDBE,Auxiliary Functions,Critical,Medium,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetSql(Vdbe *p, const char *z, int n, u8 prepFlags){", False
 sqlite3VdbeSetVarmask,vdbeaux.c,5385,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeSetVarmask(Vdbe *v, int iVar){", False
@@ -934,8 +934,8 @@ sqlite3VdbeVerifyAbortable,vdbeaux.c,1106,void,VDBE,Auxiliary Functions,Critical
 sqlite3VdbeVerifyNoMallocRequired,vdbeaux.c,1079,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,"void sqlite3VdbeVerifyNoMallocRequired(Vdbe *p, int N){", False
 sqlite3VdbeVerifyNoResultRow,vdbeaux.c,1092,void,VDBE,Auxiliary Functions,Critical,High,True,False,Auxiliary Functions function in VDBE subsystem,void sqlite3VdbeVerifyNoResultRow(Vdbe *p){, False
 sqlite3_step,vdbeapi.c,895,int,VDBE,Statement Execution,Critical,Low,True,False,Statement Execution function in VDBE subsystem,int sqlite3_step(sqlite3_stmt *pStmt){, False
-sqlite3_value_free,vdbeapi.c,371,void,VDBE,API Interface,Critical,Medium,True,False,API Interface function in VDBE subsystem,void sqlite3_value_free(sqlite3_value *pOld){, False
-vdbeAssertFieldCountWithinLimits,vdbeaux.c,4416,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static void vdbeAssertFieldCountWithinLimits(, False
+sqlite3_value_free,vdbeapi.c,371,void,VDBE,API Interface,Critical,Medium,True,False,API Interface function in VDBE subsystem,void sqlite3_value_free(sqlite3_value *pOld){, True
+vdbeAssertFieldCountWithinLimits,vdbeaux.c,4416,void,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static void vdbeAssertFieldCountWithinLimits(, True
 vdbeCloseStatement,vdbeaux.c,3263,return,VDBE,Auxiliary Functions,Critical,Medium,False,False,Auxiliary Functions function in VDBE subsystem,"return vdbeCloseStatement(p, eOp);", False
 vdbeCommit,vdbeaux.c,2915,int,VDBE,Auxiliary Functions,Critical,Low,False,True,Auxiliary Functions function in VDBE subsystem,"static int vdbeCommit(sqlite3 *db, Vdbe *p){", False
 vdbeCompareMemString,vdbeaux.c,4472,int,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeCompareMemString(, False
@@ -949,10 +949,10 @@ vdbeFreeUnpacked,vdbeaux.c,5473,void,VDBE,Auxiliary Functions,Critical,Medium,Fa
 vdbeInvokeSqllog,vdbeaux.c,3555,void,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static void vdbeInvokeSqllog(Vdbe *v){, False
 vdbeMemAddTerminator,vdbemem.c,440,return,VDBE,Memory Operations,Critical,Medium,False,False,Memory Operations function in VDBE subsystem,return vdbeMemAddTerminator(pMem);, False
 vdbeMemRenderNum,vdbemem.c,106,void,VDBE,Memory Operations,Critical,Medium,False,True,Memory Operations function in VDBE subsystem,"static void vdbeMemRenderNum(int sz, char *zBuf, Mem *p){", False
-vdbeRecordCompareDebug,vdbeaux.c,4295,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareDebug(, False
-vdbeRecordCompareInt,vdbeaux.c,4967,int,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareInt(, False
-vdbeRecordCompareString,vdbeaux.c,5062,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareString(, False
-vdbeRecordDecodeInt,vdbeaux.c,4674,i64,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,"static i64 vdbeRecordDecodeInt(u32 serial_type, const u8 *aKey){", False
+vdbeRecordCompareDebug,vdbeaux.c,4295,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareDebug(, True
+vdbeRecordCompareInt,vdbeaux.c,4967,int,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareInt(, True
+vdbeRecordCompareString,vdbeaux.c,5062,int,VDBE,Auxiliary Functions,Critical,High,False,True,Auxiliary Functions function in VDBE subsystem,static int vdbeRecordCompareString(, True
+vdbeRecordDecodeInt,vdbeaux.c,4674,i64,VDBE,Auxiliary Functions,Critical,Medium,False,True,Auxiliary Functions function in VDBE subsystem,"static i64 vdbeRecordDecodeInt(u32 serial_type, const u8 *aKey){", True
 vdbeSafety,vdbeapi.c,40,int,VDBE,API Interface,Critical,Low,False,True,API Interface function in VDBE subsystem,static int vdbeSafety(Vdbe *p){, False
 vdbeSafety,vdbeapi.c,53,return,VDBE,API Interface,Critical,Low,False,False,API Interface function in VDBE subsystem,return vdbeSafety(p);, False
 vdbeSafetyNotNull,vdbeapi.c,48,int,VDBE,API Interface,Critical,Medium,False,True,API Interface function in VDBE subsystem,static int vdbeSafetyNotNull(Vdbe *p){, False
