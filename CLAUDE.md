@@ -61,7 +61,7 @@ build/dependencies/
 4. **Function Code (FC) 매핑**:
    - SQLite3 내부 함수: 파일명 + 함수명 기반 유니크 ID
    - Public API: sqlite3_ 접두사 기반 표준 매핑
-   - 매핑 근거를 `./fuzzers/ours_w_spec/spec/{함수명}_spec.json`에 기록
+   - 매핑 근거를 `./fuzzers/alfha/spec/{함수명}_spec.json`에 기록
 
 ## 2) 구조체 확인
 
@@ -123,7 +123,7 @@ grep -A 10 "struct.*{" build/dependencies/sqlite3-source/src/*.h
 
 ## 4) SQLite3 Spec 문서화
 
-### 스펙 파일 생성: `./fuzzers/ours_w_spec/spec/{함수명}_spec.json`
+### 스펙 파일 생성: `./fuzzers/alfha/spec/{함수명}_spec.json`
 
 **SQLite3 함수 스펙 템플릿**:
 ```json
@@ -200,13 +200,13 @@ grep -A 10 "struct.*{" build/dependencies/sqlite3-source/src/*.h
 ### 하니스 파일 구조 (Modular Organization)
 
 #### 메인 파일
-* `./fuzzers/ours_w_spec/fuzz.c` - 메인 fuzzer 엔트리포인트와 공통 기능
-* `./fuzzers/ours_w_spec/fuzz.h` - 공통 타입 정의 및 인터페이스
+* `./fuzzers/alfha/fuzz.c` - 메인 fuzzer 엔트리포인트와 공통 기능
+* `./fuzzers/alfha/fuzz.h` - 공통 타입 정의 및 인터페이스
 
 #### 함수별 하니스 파일
 각 타겟 함수별로 별도 파일로 분리하여 관리:
-* `./fuzzers/ours_w_spec/{function_name}_harness.c` - 함수별 하니스 구현
-* `./fuzzers/ours_w_spec/{function_name}_harness.h` - 함수별 헤더 파일
+* `./fuzzers/alfha/{function_name}_harness.c` - 함수별 하니스 구현
+* `./fuzzers/alfha/{function_name}_harness.h` - 함수별 헤더 파일
 
 예시:
 * `btree_harness.c/h` - allocateBtreePage 관련 하니스
@@ -234,27 +234,27 @@ grep -A 10 "struct.*{" build/dependencies/sqlite3-source/src/*.h
 
 ### 빌드 명령어
 ```bash
-# ours_w_spec 퍼저 빌드 (specification-based)
-make ours_w_spec_standalone
+# alfha 퍼저 빌드 (specification-based)
+make alfha_standalone
 
 # 또는 개별 빌드 스크립트 사용
-./build/scripts/build_ours_w_spec.sh
+./build/scripts/build_alfha.sh
 
 # OSS-Fuzz 환경 빌드
-make ours_w_spec_ossfuzz
+make alfha_ossfuzz
 ```
 
 ### 동작 테스트
 ```bash
 # 단독 실행 테스트
-./ours_w_spec_standalone testcases/basic.sql
+./alfha_standalone testcases/basic.sql
 
 # 샘플 입력으로 크래시 테스트  
-echo "CREATE TABLE test(id INTEGER);" | ./ours_w_spec_standalone
+echo "CREATE TABLE test(id INTEGER);" | ./alfha_standalone
 
 # 커버리지 모드 테스트
-make coverage_ours_w_spec
-./ours_w_spec_coverage testcases/basic.sql
+make coverage_alfha
+./alfha_coverage testcases/basic.sql
 ```
 
 ### 검증 체크리스트
@@ -276,14 +276,14 @@ git checkout -b $BRANCH_NAME
 ### 2) 변경 파일 스테이징
 ```bash
 # 스펙 파일만 추가
-git add fuzzers/ours_w_spec/spec/${FUNC_NAME}_spec.json
+git add fuzzers/alfha/spec/${FUNC_NAME}_spec.json
 
 # 하니스 코드 추가
-git add fuzzers/ours_w_spec/fuzz.c
-git add fuzzers/ours_w_spec/fuzz.h
+git add fuzzers/alfha/fuzz.c
+git add fuzzers/alfha/fuzz.h
 
 # 빌드 스크립트 변경사항 (필요시)
-git add build/scripts/build_ours_w_spec.sh
+git add build/scripts/build_alfha.sh
 ```
 
 ### 3) 커밋 (SQLite3 특화 템플릿)
@@ -333,8 +333,8 @@ git pull origin main
 * **분석 데이터 삭제 금지** - `analysis/results/` 기존 데이터 보존
 
 ## 제한된 수정 범위
-* **허용**: `fuzzers/ours_w_spec/` 하위 파일만 수정/생성
-* **허용**: `build/scripts/build_ours_w_spec.sh` 필요시 수정
+* **허용**: `fuzzers/alfha/` 하위 파일만 수정/생성
+* **허용**: `build/scripts/build_alfha.sh` 필요시 수정
 * **금지**: 다른 퍼저 디렉토리나 분석 도구 무단 수정
 
 ## 코딩 제약사항  

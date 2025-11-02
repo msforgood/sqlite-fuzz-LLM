@@ -1,28 +1,28 @@
 # Advanced SQLite3 Fuzzer - Competition Submission
 # Main Makefile for building all components
 
-.PHONY: all clean baseline ours_wo_spec ours_w_spec advanced coverage analysis examples help
+.PHONY: all clean baseline plain alfha advanced coverage analysis examples help
 
 # Default target
-all: baseline ours_wo_spec
+all: baseline plain
 
 # Build baseline fuzzers
 baseline:
 	@echo "Building baseline fuzzers..."
 	@cd build/scripts && ./build_baseline.sh
 
-# Build ours_wo_spec fuzzer (version 1)
-ours_wo_spec:
-	@echo "Building ours_wo_spec fuzzer (version 1)..."
-	@cd build/scripts && ./build_ours_wo_spec.sh
+# Build plain fuzzer (version 1)
+plain:
+	@echo "Building plain fuzzer (version 1)..."
+	@cd build/scripts && ./build_plain.sh
 
-# Build ours_w_spec fuzzer (version 2) 
-ours_w_spec:
-	@echo "Building ours_w_spec fuzzer (version 2)..."
-	@cd build/scripts && ./build_ours_w_spec.sh
+# Build alfha fuzzer (version 2) 
+alfha:
+	@echo "Building alfha fuzzer (version 2)..."
+	@cd build/scripts && ./build_alfha.sh
 
-# Legacy alias for ours_wo_spec
-advanced: ours_wo_spec
+# Legacy alias for plain
+advanced: plain
 
 # Build with coverage instrumentation
 coverage:
@@ -66,11 +66,11 @@ deps:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  all           - Build baseline and ours_wo_spec fuzzers"
+	@echo "  all           - Build baseline and plain fuzzers"
 	@echo "  baseline      - Build only baseline fuzzers"
-	@echo "  ours_wo_spec  - Build ours_wo_spec fuzzer (version 1)"
-	@echo "  ours_w_spec   - Build ours_w_spec fuzzer (version 2)"
-	@echo "  advanced      - Alias for ours_wo_spec (legacy)"
+	@echo "  plain  - Build plain fuzzer (version 1)"
+	@echo "  alfha   - Build alfha fuzzer (version 2)"
+	@echo "  advanced      - Alias for plain (legacy)"
 	@echo "  coverage  - Build with coverage instrumentation"
 	@echo "  analysis  - Run performance comparison analysis"
 	@echo "  reports   - Generate analysis reports"
