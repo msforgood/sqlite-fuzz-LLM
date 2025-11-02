@@ -179,7 +179,7 @@ def main():
     """Main function to extract and analyze SQLite3 functions"""
     
     # SQLite3 소스 디렉토리
-    src_dir = "/home/minseo/custom-sqlite-fuzzer/build/dependencies/sqlite3-source/src"
+    src_dir = "./build/dependencies/sqlite3-source/src"
     
     if not os.path.exists(src_dir):
         print(f"Source directory not found: {src_dir}")
@@ -227,7 +227,7 @@ def main():
         print(f"  {priority}: {count}")
     
     # CSV 파일 생성
-    output_file = "/home/minseo/custom-sqlite-fuzzer/analysis/results/sqlite3_functions.csv"
+    output_file = "./analysis/results/sqlite3_functions.csv"
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     
     print(f"\nWriting results to {output_file}...")
