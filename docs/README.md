@@ -10,7 +10,7 @@ ALFHA(Automated LLM-based Fuzzing and Harness Agent)는 LLM을 활용해 퍼징 
 
 ## 🎬 데모 영상
 
-[▶️ Watch the Demo](https://github.com/msforgood/ALFHA/assets/demo.mp4)
+[▶️ Watch the Demo](https://www.youtube.com/watch?v=7dXUTrWKGFQ)
 [![Watch the demo](https://img.youtube.com/vi/7dXUTrWKGFQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=7dXUTrWKGFQ)
 
 
@@ -40,7 +40,7 @@ ALFHA가 SQLite3 함수를 자동으로 분석하고, 스펙을 생성하며, �
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                         ALFHA Framework                 │
+│                     ALFHA Framework                     │
 ├─────────────────────────────────────────────────────────┤
 │  MCP (Model Context Protocol) 기반 확장 가능 구조           │
 │                                                         │
