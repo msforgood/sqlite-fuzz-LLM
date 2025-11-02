@@ -3,7 +3,7 @@
 /corpus/
 /coverage_build/
 /gcov_build/
-/coverage_results/
+/analysis/results/coverage/
 /gcov_results/
 */obj/
 
@@ -22,11 +22,14 @@
 
 # Analysis results (keep structure, ignore data)
 /analysis/results/coverage/*
-/analysis/results/performance/*
-/analysis/results/reports/*
-!/analysis/results/coverage/.gitkeep
-!/analysis/results/performance/.gitkeep
-!/analysis/results/reports/.gitkeep
+
+# Exploit
+/exploit/bin/
+/exploit/results/
+
+# Reproduct
+*/repro_*
+/repro_*
 
 # Test artifacts
 /tests/testcases/binary/*.bin
@@ -42,6 +45,7 @@
 *~
 *.bak
 *.tmp
+*.log
 
 # OS specific files
 .DS_Store
@@ -62,3 +66,9 @@ sqlite-amalgamation-*/
 # Compressed files
 *.zip
 *.tar.gz
+
+/crash-*
+/leak-*
+/shell.c
+
+*.backup
